@@ -143,6 +143,8 @@ class ClientHandler extends Thread
         int number_user_online_session = 0;
         int number_characters = 0;
         int number_items_b = 0;
+        int number_categories = 0;
+        int number_object_categories = 0;
 
         String id_passed_session = "";
         String id_passed_character = "";
@@ -154,10 +156,14 @@ class ClientHandler extends Thread
         boolean is_character_connected = false;
         boolean is_host = false;
 
+        String c_name = "", c_desc = "";
+        boolean find_category = false;
+
         Blob image = null;
 
         int session_id = 0;
         int character_id = 0;
+        int category_id = 0;
 
         String new_username = "", new_password = "", new_name = "", new_surname = "", new_email = "";
 
@@ -386,7 +392,7 @@ class ClientHandler extends Thread
                                 else
                                 {
                                     //FUNZIONI PER IL GAME MASTER
-
+                                    is_host = true;
                                 }
 
                             }
@@ -803,6 +809,139 @@ class ClientHandler extends Thread
                         dos.writeBytes("-1" + '\n');
                 }
 
+
+                else if (received.equals("add_category"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
+
+
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = true;
+
+                        c_name = dis.readLine(); //Mi prendo il nome della categoria
+                        c_desc = dis.readLine(); //Mi prendo la descrizione della categoria
+
+
+                        rs = stmt.executeQuery("SELECT * from Categorie c WHERE c.id_sessione = " + session_id);
+                        while (rs.next()) {
+
+                            if(c_name.equals(rs.getString("nome")))
+                                find_category = true;
+
+                        }
+
+                        if(find_category)
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+
+                        else
+                        {
+                            pstmt = conn.prepareStatement("INSERT INTO Category " + "(nome, descrizione, id_sessione) values (?,?,?)");
+
+
+                            pstmt.setString(1, c_name);
+                            pstmt.setString(2, c_desc);
+                            pstmt.setInt(3, session_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+
+                            dos.writeBytes("1" + '\n');
+                        }
+
+                    }
+                    else
+                        dos.writeBytes("-1" + '\n');
+                }
+
+
+                else if (received.equals("show_category"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true) {
+
+
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        number_categories = 0;
+
+                        rs = stmt.executeQuery("SELECT * from Categorie c WHERE c.id_sessione = " + session_id);
+                        while (rs.next()) {
+
+                            number_categories++;
+
+                        }
+
+                        dos.writeBytes(Integer.toString(number_categories) + '\n'); //Ritorno il numero di characters per quell'utente
+
+                        rs = stmt.executeQuery("SELECT * from Categorie c WHERE c.id_sessione = " + session_id);
+                        while (rs_temp.next()) {
+                            dos.writeBytes(rs_temp.getString("nome") + '\n');
+                            dos.writeBytes(rs_temp.getString("descrizione") + '\n');
+                        }
+
+
+
+                    }
+                    else
+                        dos.writeBytes("-1" + '\n');
+                }
+
+                else if (received.equals("show_category_objects"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
+
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        c_name = dis.readLine();
+
+                        find_category = false;
+
+                        rs = stmt.executeQuery("SELECT * from Category c WHERE c.nome = " + c_name + " AND c.id_sessione = " + session_id);
+                        while (rs.next()) {
+                            find_category = true;
+                            category_id = rs.getInt("id");
+                        }
+
+
+                        if(find_category == false)
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+                        else
+                        {
+                            rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN Categorie c ON o.id_categoria = c.id  WHERE c.id = " + category_id);
+                            while (rs.next()) {
+                                number_object_categories++;
+                            }
+
+
+                            dos.writeBytes(Integer.toString(number_object_categories) + '\n'); // Restituisco il numero di oggetti del backpack
+
+                            image = null;
+
+                            rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN Categorie c ON o.id_categoria = c.id  WHERE c.id = " + category_id);
+                            while (rs.next()) {
+
+                                dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
+                                dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
+
+                                image = rs.getBlob("foto");
+                                byte barr[] = image.getBytes(1,(int)image.length());
+                                dos.write(barr);
+
+                                //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
+                                dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+                                dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
+                            }
+
+                        }
+
+                    }
+                    else
+                        dos.writeBytes("-1" + '\n');
+                }
 
 
                 else if (received.equals("show_user_character"))
