@@ -314,6 +314,8 @@ class ClientHandler extends Thread
 
                 }
 
+
+                //s
                 else if (received.equals("get_number_user_online_session"))
                 {
                     if(is_disconnect == false && is_connect == true) {
