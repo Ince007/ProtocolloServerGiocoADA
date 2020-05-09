@@ -139,6 +139,8 @@ class ClientHandler extends Thread
         Connection conn_temp = null;
 
 
+
+
         int number_sessions = 0;
         int number_user_online_session = 0;
         int number_characters = 0;
@@ -152,6 +154,7 @@ class ClientHandler extends Thread
         String filter_item = "";
 
         int i = 0;
+        int x = 0;
         boolean is_session_connected = false;
         boolean is_character_connected = false;
         boolean is_host = false;
@@ -164,6 +167,30 @@ class ClientHandler extends Thread
         int session_id = 0;
         int character_id = 0;
         int category_id = 0;
+
+
+        String trade_name_c = "";
+        int number_item_trade_1 = 0;
+        int number_item_trade_2 = 0;
+        String[] trade_o_1 = new String[100];
+        String[] trade_o_2 = new String[100];
+        int[] trade_q_1 = new int[100];
+        int[] trade_q_2 = new int[100];
+
+        int[] quantity_items_1 = new int[100];
+        int[] quantity_items_2 = new int[100];
+
+        int[] id_items_1 = new int[100];
+        int[] id_items_2 = new int[100];
+
+        boolean is_null_1 = false;
+        boolean is_null_2 = false;
+
+        boolean find_trade = false;
+
+        boolean is_o1_ok = false;
+        boolean is_o2_ok = false;
+
 
         String new_username = "", new_password = "", new_name = "", new_surname = "", new_email = "";
 
@@ -874,10 +901,17 @@ class ClientHandler extends Thread
 
                         dos.writeBytes(Integer.toString(number_categories) + '\n'); //Ritorno il numero di characters per quell'utente
 
+
+                        image = null;
+
                         rs = stmt.executeQuery("SELECT * from Categorie c WHERE c.id_sessione = " + session_id);
                         while (rs_temp.next()) {
                             dos.writeBytes(rs_temp.getString("nome") + '\n');
                             dos.writeBytes(rs_temp.getString("descrizione") + '\n');
+
+                            image = rs.getBlob("foto");
+                            byte barr[] = image.getBytes(1,(int)image.length());
+                            dos.write(barr);
                         }
 
 
@@ -975,7 +1009,267 @@ class ClientHandler extends Thread
                 }
 
                 //TRADING
-                
+                else if (received.equals("trading_with"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
+
+                        dos.writeBytes("1" + '\n');
+
+                        trade_name_c = dis.readLine();
+
+                        find_trade = false;
+                        rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + trade_name_c + " AND p.is_character = 1");
+                        while (rs_temp.next()) {
+                            find_trade = true;
+                            send_id = rs.getInt("id");
+                        }
+
+                        if(find_trade)
+                        {
+                            dos.writeBytes("1" + '\n');
+
+                            number_item_trade_1 = Integer.parseInt(dis.readLine());
+
+                            number_item_trade_2 = Integer.parseInt(dis.readLine());
+
+                            for(i = 0; i < number_item_trade_1; i++)
+                            {
+                                trade_q_1[i] = Integer.parseInt(dis.readLine());
+                                trade_o_1[i] = dis.readLine();
+                            }
+
+                            for(i = 0; i < number_item_trade_2; i++)
+                            {
+                                trade_q_2[i] = Integer.parseInt(dis.readLine());
+                                trade_o_2[i] = dis.readLine();
+                            }
+
+
+                            is_o1_ok = true;
+                            is_o2_ok = true;
+
+                            for(i = 0; i < number_item_trade_1; i++)
+                            {
+                                find_trade = false;
+                                rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + character_id + " AND o.nome = " + trade_o_1[i] + " AND rpo.quantita <= " + trade_q_1[i]);
+                                while (rs_temp.next()) {
+                                    find_trade = true;
+                                    id_items_1[i] = rs_temp.getInt("id");
+                                    quantity_items_1[i] = rs_temp.getInt("quantita");
+                                }
+
+                                if(find_trade == false)
+                                {
+                                    is_o1_ok = false;
+                                    break;
+                                }
+                            }
+
+                            for(i = 0; i < number_item_trade_2; i++)
+                            {
+                                find_trade = false;
+                                rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + send_id + " AND o.nome = " + trade_o_2[i] + " AND rpo.quantita <= " + trade_q_2[i]);
+                                while (rs_temp.next()) {
+                                    find_trade = true;
+                                    id_items_2[i] = rs_temp.getInt("id");
+                                    //Salvati i dati della quantità
+                                    quantity_items_2[i] = rs_temp.getInt("quantita");
+                                }
+
+                                if(find_trade == false)
+                                {
+                                    is_o2_ok = false;
+                                    break;
+                                }
+                            }
+
+
+                            is_null_1 = false;
+
+                            if(is_o1_ok == true && is_o2_ok == true)
+                            {
+
+                                //Faccio l'update del primo utente
+
+                                for(i = 0; i < number_item_trade_1; i++)
+                                {
+                                    if(quantity_items_1[i] - trade_q_1[i] == 0)
+                                    {
+                                        pstmt = conn.prepareStatement("DELETE FROM R_Personaggio_Oggetto WHERE id_personaggio = ? AND id_oggetto = ?");
+                                        pstmt.setInt(1, character_id);
+                                        pstmt.setInt(2, id_items_1[i]);
+                                        pstmt.execute();
+                                        pstmt.close(); // rilascio le risorse
+                                    }
+
+                                    else if (quantity_items_1[i] - trade_q_1[i] > 0)
+                                    {
+                                        x = quantity_items_1[i] - trade_q_1[i];
+                                        pstmt = conn.prepareStatement("UPDATE FROM R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + character_id + " AND id_oggetto = " + id_items_1[i]);
+                                        //pstmt.setInt(1, character_id);
+                                        //pstmt.setInt(2, id_items_1[i]);
+                                        pstmt.execute();
+                                        pstmt.close(); // rilascio le risorse
+                                    }
+
+                                    else
+                                        is_null_1 = true;
+
+                                }
+
+
+                                //Faccio l'update del secondo utente
+
+                                for(i = 0; i < number_item_trade_2; i++)
+                                {
+                                    if(quantity_items_2[i] - trade_q_2[i] == 0)
+                                    {
+                                        pstmt = conn.prepareStatement("DELETE FROM R_Personaggio_Oggetto WHERE id_personaggio = ? AND id_oggetto = ?");
+                                        pstmt.setInt(1, send_id);
+                                        pstmt.setInt(2, id_items_2[i]);
+                                        pstmt.execute();
+                                        pstmt.close(); // rilascio le risorse
+                                    }
+
+                                    else if (quantity_items_2[i] - trade_q_2[i] > 0)
+                                    {
+                                        x = quantity_items_2[i] - trade_q_2[i];
+                                        pstmt = conn.prepareStatement("UPDATE FROM R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + send_id + " AND id_oggetto = " + id_items_2[i]);
+                                        //pstmt.setInt(1, character_id);
+                                        //pstmt.setInt(2, id_items_1[i]);
+                                        pstmt.execute();
+                                        pstmt.close(); // rilascio le risorse
+                                    }
+
+                                    else
+                                        is_null_2 = true;
+
+                                }
+
+
+                                if(is_null_1 == false && is_null_2 == false)
+                                {
+                                    //Adesso aggiungo gli oggetti del trading del secondo giocatore al primo giocatore
+                                    for(i = 0; i < number_item_trade_2; i++)
+                                    {
+                                        find_trade = false;
+                                        rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + character_id + " AND rpo.id_oggetto = " + id_items_2[i]);
+                                        while (rs_temp.next()) {
+                                            find_trade = true;
+                                            x = rs_temp.getInt("quantita");
+                                        }
+
+                                        if(find_trade == true)
+                                        {
+                                            x = x + quantity_items_2[i];
+
+                                            pstmt = conn.prepareStatement("UPDATE FROM R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + character_id + " AND id_oggetto = " + id_items_2[i]);
+                                            //pstmt.setInt(1, character_id);
+                                            //pstmt.setInt(2, id_items_1[i]);
+                                            pstmt.execute();
+                                            pstmt.close(); // rilascio le risorse
+                                        }
+                                        else
+                                        {
+                                            pstmt = conn.prepareStatement("INSERT INTO R_Personaggio_Oggetto " + "(id_personaggio, id_oggetto, quantita) values (?,?,?)");
+                                            pstmt.setInt(1, character_id);
+                                            pstmt.setInt(2, id_items_2[i]);
+                                            pstmt.setInt(3, trade_q_2[i]);
+                                            pstmt.execute();
+                                            pstmt.close(); // rilascio le risorse
+                                        }
+
+
+
+                                    }
+
+
+                                    //Adesso aggiungo gli oggetti del trading del primo giocatore al secondo giocatore
+                                    for(i = 0; i < number_item_trade_1; i++)
+                                    {
+                                        find_trade = false;
+                                        rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + send_id + " AND rpo.id_oggetto = " + id_items_1[i]);
+                                        while (rs_temp.next()) {
+                                            find_trade = true;
+                                            x = rs_temp.getInt("quantita");
+                                        }
+
+                                        if(find_trade == true)
+                                        {
+                                            x = x + quantity_items_2[i];
+
+                                            pstmt = conn.prepareStatement("UPDATE FROM R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + send_id + " AND id_oggetto = " + id_items_1[i]);
+                                            //pstmt.setInt(1, character_id);
+                                            //pstmt.setInt(2, id_items_1[i]);
+                                            pstmt.execute();
+                                            pstmt.close(); // rilascio le risorse
+                                        }
+                                        else
+                                        {
+                                            pstmt = conn.prepareStatement("INSERT INTO R_Personaggio_Oggetto " + "(id_personaggio, id_oggetto, quantita) values (?,?,?)");
+                                            pstmt.setInt(1, send_id);
+                                            pstmt.setInt(2, id_items_1[i]);
+                                            pstmt.setInt(3, trade_q_1[i]);
+                                            pstmt.execute();
+                                            pstmt.close(); // rilascio le risorse
+                                        }
+
+
+                                        dos.writeBytes("1" + '\n');
+
+
+                                    }
+                                }
+                                else
+                                {
+                                    dos.writeBytes("-4" + '\n');
+                                }
+
+
+                            }
+
+
+
+                            else
+                            {
+                                dos.writeBytes("-3" + '\n');
+                            }
+
+                        }
+                        else
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+
+
+                    }
+                    else
+                        dos.writeBytes("-1" + '\n');
+                }
+
+                //Get quantity of object per character
+
+                //Creating new character
+
+                //Creating session
+
+
+                // Game master
+
+                //Unlock and lock trading
+
+                //Show all items
+
+                //Show all monsters
+
+                //Show all npcs
+
+                //Show all characters
+
+                //Show all transport
+
+
+
                 else if(received.equals("get_user_id"))
                 {
                 	//CONTROLLO SE L'UTENTE ESISTE NEL DATABASE
@@ -1022,8 +1316,6 @@ class ClientHandler extends Thread
                     dos.writeBytes(variable_return + '\n');
                     
                 }
-
-
 
 
 
