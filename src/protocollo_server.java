@@ -195,6 +195,7 @@ class ClientHandler extends Thread
         String character_nome = "", character_biografia = "", character_razza = "";
         int character_hp = 0, character_eta = 0, character_hp_max;
         float character_peso = 0, character_altezza = 0;
+        String what_character = "";
 
 
         String new_username = "", new_password = "", new_name = "", new_surname = "", new_email = "";
@@ -1347,7 +1348,7 @@ class ClientHandler extends Thread
                         character_hp_max = Integer.parseInt(dis.readLine());
 
 
-                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id);
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.is_character = 1 AND p.id_sessione = " + session_id);
                         while (rs.next()) {
 
                             if(character_nome.equals(rs.getString("nome")))
@@ -1390,14 +1391,329 @@ class ClientHandler extends Thread
                         dos.writeBytes("-1" + '\n');
                 }
 
+                //Creating new personaggio
+                else if (received.equals("add_personaggio"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
+
+
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = false;
+
+                        character_nome = dis.readLine();
+                        character_hp = Integer.parseInt(dis.readLine());
+                        character_biografia = dis.readLine();
+                        character_razza = dis.readLine();
+                        character_eta = Integer.parseInt(dis.readLine());
+                        character_peso = Float.parseFloat(dis.readLine());
+                        character_altezza = Float.parseFloat(dis.readLine());
+                        character_hp_max = Integer.parseInt(dis.readLine());
+                        what_character = dis.readLine();
+
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id);
+                        while (rs.next()) {
+
+                            if(character_nome.equals(rs.getString("nome")))
+                                find_category = true;
+
+                        }
+
+                        if(find_category)
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+
+                        else
+                        {
+                            pstmt = conn.prepareStatement("INSERT INTO Personaggi " + "(nome, hp, biografia, razza, eta, peso, altezza, hp_max, id_sessione, id_utente, is_character, is_npc, is_riding_animal, is_enemy /*Immagine*/ ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+
+
+                            variable_return = "1";
+
+                            pstmt.setString(1, c_name);
+                            pstmt.setInt(2, character_hp);
+                            pstmt.setString(3, character_biografia);
+                            pstmt.setString(4, character_razza);
+                            pstmt.setInt(5, character_eta);
+                            pstmt.setFloat(6, character_peso);
+                            pstmt.setFloat(7, character_altezza);
+                            pstmt.setInt(8, character_hp_max);
+                            pstmt.setInt(9, session_id);
+                            pstmt.setInt(10, client_id);
+
+                            if(what_character.equals("is_character"))
+                            {
+                                pstmt.setInt(11, 1);
+                                pstmt.setInt(12, 0);
+                                pstmt.setInt(13, 0);
+                                pstmt.setInt(14, 0);
+                            }
+
+                            else if(what_character.equals("is_npc"))
+                            {
+                                pstmt.setInt(11, 0);
+                                pstmt.setInt(12, 1);
+                                pstmt.setInt(13, 0);
+                                pstmt.setInt(14, 0);
+                            }
+
+                            else if(what_character.equals("is_riding_animal"))
+                            {
+                                pstmt.setInt(11, 0);
+                                pstmt.setInt(12, 0);
+                                pstmt.setInt(13, 1);
+                                pstmt.setInt(14, 0);
+                            }
+
+                            else if(what_character.equals("is_enemy"))
+                            {
+                                pstmt.setInt(11, 0);
+                                pstmt.setInt(12, 0);
+                                pstmt.setInt(13, 0);
+                                pstmt.setInt(14, 1);
+                            }
+
+                            else
+                            {
+                                pstmt.setInt(11, 0);
+                                pstmt.setInt(12, 0);
+                                pstmt.setInt(13, 0);
+                                pstmt.setInt(14, 0);
+                                variable_return = "-3";
+                            }
+
+                            //Inserimento foto
+
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+
+                            dos.writeBytes(variable_return + '\n');
+                        }
+
+                    }
+                    else
+                        dos.writeBytes("-1" + '\n');
+                }
+
 
 
                 //Creating session
 
+
                 //Adding object to equipment
+                else if (received.equals("add_object_equipment"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true)
+                    {
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = false;
+
+                        c_name = dis.readLine();
+                        what_character = dis.readLine();
+
+
+                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on o.id = rpo.id_oggetto INNER JOIN Personaggio p on p.id = rpo.id_personaggio WHERE p.id_sessione = " + session_id + " AND p.id = " + character_id + " AND o.nome = " + c_name);
+                        while (rs.next())
+                        {
+                            if(c_name.equals(rs.getString("o.nome"))) {
+                                find_category = true;
+                                send_id = rs.getInt("o.id");
+                            }
+                        }
+
+
+                        if(find_category == true)
+                        {
+                            pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_head_eq = '0', is_torso_eq = '0', is_left_arm_eq = '0', is_right_arm_eq = '0', is_left_leg_eq = '0', is_right_leg_eq = '0', is_first_weapon_eq = '0', is_secondary_weapon_eq = '0', is_gloves_eq = '0', is_left_gloves_eq = '0', is_right_gloves_eq = '0', is_shoes_eq = '0', is_greaves_eq = '0', is_left_greaves_eq = '0', is_right_greaves_eq = '0' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            pstmt.execute();
+                            pstmt.close();
+
+
+                            if(what_character.equals("head"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_head_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("torso"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_torso_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("left_arm"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_left_arm_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("right_arm"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_right_arm_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("left_leg"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_left_leg_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("right_leg"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_right_leg_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("first_weapon"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_first_weapon_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("secondary_weapon"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_secondary_weapon_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("gloves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_gloves_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("left_gloves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_left_gloves_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("right_gloves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_right_gloves_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("shoes"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_shoes_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("greaves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_greaves_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("left_greaves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_left_greaves_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("right_greaves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_right_greaves_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+
+                            dos.writeBytes("1" + '\n');
+
+                        }
+                        else
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                    {
+                        dos.writeBytes("-1" + '\n');
+                    }
+                }
+
+
 
                 //Update hp of character
+                else if (received.equals("update_hp"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
+                    {
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
+                        find_category = false;
+
+                        character_nome = dis.readLine();
+                        character_hp = Integer.parseInt(dis.readLine());
+
+
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + character_nome);
+                        while (rs.next())
+                        {
+
+                            if(character_nome.equals(rs.getString("nome"))) {
+                                find_category = true;
+                                send_id = rs.getInt("id");
+                            }
+                        }
+
+                        if(find_category == true)
+                        {
+                            pstmt = conn.prepareStatement("UPDATE Personaggi SET hp = " + character_hp + " where Personaggi.id = " + send_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+
+                            dos.writeBytes("1" + '\n');
+
+                        }
+                        else
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                    {
+                        dos.writeBytes("-1" + '\n');
+                    }
+                }
+
+
+                //Update hp_max of character
+                else if (received.equals("update_hp_max"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
+                    {
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = false;
+
+                        character_nome = dis.readLine();
+                        character_hp_max = Integer.parseInt(dis.readLine());
+
+
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + character_nome);
+                        while (rs.next())
+                        {
+
+                            if(character_nome.equals(rs.getString("nome"))) {
+                                find_category = true;
+                                send_id = rs.getInt("id");
+                            }
+                        }
+
+                        if(find_category == true)
+                        {
+                            pstmt = conn.prepareStatement("UPDATE Personaggi SET hp_max = " + character_hp_max + " where Personaggi.id = " + send_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+
+                            dos.writeBytes("1" + '\n');
+
+                        }
+                        else
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                    {
+                        dos.writeBytes("-1" + '\n');
+                    }
+                }
 
                 // Game master
 
@@ -1463,9 +1779,6 @@ class ClientHandler extends Thread
                     dos.writeBytes(variable_return + '\n');
                     
                 }
-
-
-
 
                 else if(received.equals("create_user"))
                 {
@@ -1546,9 +1859,6 @@ class ClientHandler extends Thread
                     }
 
                 }
-
-
-
 
                 else if(received.equals("disconnect")) 
                 { 
