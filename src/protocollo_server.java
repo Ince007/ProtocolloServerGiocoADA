@@ -200,6 +200,11 @@ class ClientHandler extends Thread
 
         String new_username = "", new_password = "", new_name = "", new_surname = "", new_email = "";
 
+
+        String s_titolo = "", s_sottotitolo = "";
+        int s_codice_invito = 0;
+
+
         while (is_closed == false)
         { 
             try { 
@@ -1499,6 +1504,67 @@ class ClientHandler extends Thread
 
 
                 //Creating session
+                else if (received.equals("create_session"))
+                {
+                    if(is_disconnect == false && is_connect == true)
+                    {
+                        dos.writeBytes("1" + '\n');
+
+                        s_titolo = dis.readLine();
+                        s_sottotitolo = dis.readLine();
+
+                        find_trade = false;
+                        rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.titolo = " + s_titolo);
+                        while (rs_temp.next()) {
+                            find_trade = true;
+                        }
+
+                        if(find_trade == false)
+                        {
+                            find_category = false;
+
+                            do
+                            {
+                                s_codice_invito = (int)((Math.random()*((9999-1000)+1))+1000);
+
+
+                                find_category = false;
+                                rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.codice_invito = " + s_codice_invito);
+                                while (rs_temp.next()) {
+                                    find_category = true;
+                                }
+
+
+
+                            }
+                            while(find_category == true);
+
+
+                            pstmt = conn.prepareStatement("INSERT INTO Sessioni " + "(titolo, sottotitolo, codice_invito, id_host) values (?,?,?,?)");
+                            pstmt.setString(1, s_titolo);
+                            pstmt.setString(2, s_sottotitolo);
+                            pstmt.setInt(3, s_codice_invito);
+                            pstmt.setInt(4, client_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+
+                            dos.writeBytes("1" + '\n');
+
+                        }
+
+                        else
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+
+
+
+                    }
+                    else
+                    {
+                        dos.writeBytes("-1" + '\n');
+                    }
+                }
 
 
                 //Adding object to equipment
