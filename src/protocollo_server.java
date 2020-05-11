@@ -205,6 +205,13 @@ class ClientHandler extends Thread
         int s_codice_invito = 0;
 
 
+        String o_nome = "", o_descrizione = "", o_campo1 = "", o_campo2 = "", o_campo3 = "", o_campo4 = "", o_campo5 = "", o_rarita = "";
+        float o_valore = 0;
+
+        boolean find_object = false, find_character = false;
+        int ob_id = 0, ch_id = 0, ob_quantity = 0, ob_numbers = 0;
+
+
         while (is_closed == false)
         { 
             try { 
@@ -849,7 +856,7 @@ class ClientHandler extends Thread
                 }
 
 
-                else if (received.equals("add_category"))
+                else if (received.equals("create_category"))
                 {
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
 
@@ -917,13 +924,22 @@ class ClientHandler extends Thread
                         image = null;
 
                         rs = stmt.executeQuery("SELECT * from Categorie c WHERE c.id_sessione = " + session_id);
-                        while (rs_temp.next()) {
+                        while (rs.next()) {
                             dos.writeBytes(rs_temp.getString("nome") + '\n');
                             dos.writeBytes(rs_temp.getString("descrizione") + '\n');
 
                             image = rs.getBlob("foto");
                             byte barr[] = image.getBytes(1,(int)image.length());
                             dos.write(barr);
+
+                            number_object_categories = 0;
+
+                            rs_temp = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_categoria = " + rs.getString("id") + " AND o.id_sessione = " + session_id);
+                            while (rs_temp.next()) {
+                                number_object_categories++;
+                            }
+                            dos.writeBytes(Integer.toString(number_object_categories) + '\n'); //Ritorno il numero di oggetti per categoria
+
                         }
 
 
@@ -935,7 +951,7 @@ class ClientHandler extends Thread
 
                 else if (received.equals("show_category_objects"))
                 {
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true) {
 
                         dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
@@ -1293,7 +1309,6 @@ class ClientHandler extends Thread
                     else
                         dos.writeBytes("-1" + '\n');
                 }
-
 
 
 
@@ -1870,7 +1885,227 @@ class ClientHandler extends Thread
                 //Show all characters
 
                 //Show all transport
-                
+
+
+
+
+                //Remove object from character
+
+                //CHANGE NAME OF OBJECT OR DATA also with category or session
+
+
+
+
+                //ADD object to category
+                else if (received.equals("add_object_category"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
+
+
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = false;
+                        find_object = false;
+
+                        c_name = dis.readLine(); //Mi prendo il nome della category
+                        o_nome = dis.readLine(); //Mi prendo il nome dell'oggetto
+                        ob_quantity = Integer.parseInt(dis.readLine());
+
+
+                        rs = stmt.executeQuery("SELECT * from Categorie c WHERE c.id_sessione = " + session_id + " AND c.nome = " + c_name);
+                        while (rs.next()) {
+                            find_character = true;
+                            ch_id = rs.getInt("id");
+                        }
+
+                        rs = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_sessione = " + session_id + " AND o.nome = " + o_nome);
+                        while (rs.next()) {
+
+                            find_object = true;
+                            ob_id = rs.getInt("id");
+                        }
+
+                        if(find_category == false)
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+
+                        else if(find_object == false)
+                        {
+                            dos.writeBytes("-3" + '\n');
+                        }
+
+                        else
+                        {
+                            find_object = false;
+                            rs = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id = " + ob_id + " AND o.id_categoria = " + ch_id);
+                            while (rs.next()) {
+                                find_object = true;
+                            }
+
+                            if(find_object == false)
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET id_categoria = '" + ch_id + "' WHERE o.id = " + ob_id + " AND o.id_sessione = " + session_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else
+                            {
+                                dos.writeBytes("-4" + '\n');
+                            }
+
+                        }
+
+                    }
+                    else
+                        dos.writeBytes("-1" + '\n');
+                }
+
+                //ADD object to character
+                else if (received.equals("add_object_character"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
+
+
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_character = false;
+                        find_object = false;
+
+                        c_name = dis.readLine(); //Mi prendo il nome del character
+                        o_nome = dis.readLine(); //Mi prendo il nome dell'oggetto
+                        ob_quantity = Integer.parseInt(dis.readLine());
+
+
+
+
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + c_name);
+                        while (rs.next()) {
+
+                            find_character = true;
+                            ch_id = rs.getInt("id");
+                        }
+
+                        rs = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_sessione = " + session_id + " AND o.nome = " + o_nome);
+                        while (rs.next()) {
+
+                            find_object = true;
+                            ob_id = rs.getInt("id");
+                        }
+
+                        if(find_character == false)
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+
+                        else if(find_object == false)
+                        {
+                            dos.writeBytes("-3" + '\n');
+                        }
+
+                        else
+                        {
+                            find_category = false;
+                            rs = stmt.executeQuery("SELECT * from R_Personaggio_Oggetto p WHERE p.id_personaggio = " + ch_id + " AND p.id_oggetto = " + ob_id);
+                            while (rs.next()) {
+                                find_category = true;
+                                ob_numbers = rs.getInt("quantita");
+                            }
+
+                            if(find_category == true)
+                            {
+
+                                ob_quantity = ob_quantity + ob_numbers;
+
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET quantita = '" + ob_quantity + "' WHERE p.id_personaggio = " + ch_id + " AND p.id_oggetto = " + ob_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+
+                            }
+
+                            else
+                            {
+                                pstmt = conn.prepareStatement("INSERT INTO R_Personaggio_Oggetto " + "(id_personaggio, id_oggetto, quantita) values (?,?,?)");
+                                pstmt.setInt(1, ch_id);
+                                pstmt.setInt(2, ob_id);
+                                pstmt.setInt(3, ob_quantity);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+
+                            }
+
+                            dos.writeBytes("1" + '\n');
+                        }
+
+                    }
+                    else
+                        dos.writeBytes("-1" + '\n');
+                }
+
+                //Creating object
+                else if (received.equals("create_object"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
+
+
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = false;
+
+                        o_nome = dis.readLine(); //Mi prendo il nome dell'oggetto
+                        o_descrizione = dis.readLine(); //Mi prendo la descrizione dell'oggetto
+                        o_rarita = dis.readLine();
+                        o_campo1 = dis.readLine();
+                        o_campo2 = dis.readLine();
+                        o_campo3 = dis.readLine();
+                        o_campo4 = dis.readLine();
+                        o_campo5 = dis.readLine();
+                        o_valore = Float.parseFloat(dis.readLine());
+                        //FOTO
+
+
+                        rs = stmt.executeQuery("SELECT * from Oggetti c WHERE o.id_sessione = " + session_id);
+                        while (rs.next()) {
+
+                            if(o_nome.equals(rs.getString("nome")))
+                                find_category = true;
+
+                        }
+
+                        if(find_category)
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+
+                        else
+                        {
+                            pstmt = conn.prepareStatement("INSERT INTO Oggetti " + "(nome, descrizione, valore, campo1, campo2, campo3, campo4, campo5, rarita_colore, id_sessione) values (?,?,?,?,?,?,?,?,?,?)");
+
+
+                            pstmt.setString(1, o_nome);
+                            pstmt.setString(2, o_descrizione);
+                            pstmt.setFloat(3, o_valore);
+                            pstmt.setString(4, o_campo1);
+                            pstmt.setString(5, o_campo2);
+                            pstmt.setString(6, o_campo3);
+                            pstmt.setString(7, o_campo4);
+                            pstmt.setString(8, o_campo5);
+                            pstmt.setString(9, o_rarita);
+                            pstmt.setInt(10, session_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+
+                            dos.writeBytes("1" + '\n');
+                        }
+
+                    }
+                    else
+                        dos.writeBytes("-1" + '\n');
+                }
+
 
                 else if(received.equals("get_user_id"))
                 {
