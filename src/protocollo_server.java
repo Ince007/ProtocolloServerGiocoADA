@@ -449,6 +449,7 @@ class ClientHandler extends Thread
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == false) {
                         character_id = 0;
                         session_id = 0;
+                        is_host = false;
                         is_character_connected = false;
                         is_session_connected = false;
                         dos.writeBytes("1" + '\n');
@@ -1502,7 +1503,6 @@ class ClientHandler extends Thread
                 }
 
 
-
                 //Creating session
                 else if (received.equals("create_session"))
                 {
@@ -1549,6 +1549,80 @@ class ClientHandler extends Thread
                             pstmt.close(); // rilascio le risorse
 
                             dos.writeBytes("1" + '\n');
+
+                            dos.writeBytes(Integer.toString(s_codice_invito) + '\n');
+
+                        }
+
+                        else
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+
+
+
+                    }
+                    else
+                    {
+                        dos.writeBytes("-1" + '\n');
+                    }
+                }
+
+
+                //Add session
+                else if (received.equals("add_session"))
+                {
+                    if(is_disconnect == false && is_connect == true)
+                    {
+                        dos.writeBytes("1" + '\n');
+
+                        s_codice_invito = Integer.parseInt(dis.readLine());
+
+
+                        find_trade = false;
+                        rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.codice_invito = " + s_codice_invito);
+                        while (rs_temp.next()) {
+                            find_trade = true;
+                            send_id = rs_temp.getInt("id");
+                        }
+
+                        if(find_trade == true)
+                        {
+
+                            rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.id = " + send_id);
+                            while (rs_temp.next()) {
+
+                                dos.writeBytes("1" + '\n');
+
+                                //Inserimento nella tabella relazione con sessione e utente
+                                pstmt = conn.prepareStatement("INSERT INTO R_Utente_Sessione " + "(id_utente, id_sessione) values (?,?)");
+
+                                pstmt.setInt(1, client_id);
+                                pstmt.setInt(2, send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+
+
+                                //Invio del titolo
+                                dos.writeBytes(rs_temp.getString("titolo") + '\n');
+
+                                //Invio del titolo
+                                dos.writeBytes(rs_temp.getString("sottotitolo") + '\n');
+
+
+                                //Calcolo ed invio degli utenti online per quella sessione
+                                number_user_online_session = 0;
+                                rs = stmt.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE u.stato_login = 1 AND rus.id_sessione = " + send_id);
+                                while (rs.next()) {
+                                    number_user_online_session++;
+                                }
+                                dos.writeBytes(Integer.toString(number_user_online_session) + '\n');
+
+
+
+
+                            }
+
 
                         }
 
@@ -1796,8 +1870,7 @@ class ClientHandler extends Thread
                 //Show all characters
 
                 //Show all transport
-
-
+                
 
                 else if(received.equals("get_user_id"))
                 {
