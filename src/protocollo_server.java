@@ -210,7 +210,7 @@ class ClientHandler extends Thread
 
         boolean find_object = false, find_character = false;
         int ob_id = 0, ch_id = 0, ob_quantity = 0, ob_numbers = 0;
-
+        String ob_data = "", ob_type = "";
 
         while (is_closed == false)
         { 
@@ -1892,6 +1892,527 @@ class ClientHandler extends Thread
                 //Remove object from character
 
                 //CHANGE NAME OF OBJECT OR DATA also with category or session
+
+                //Update character data
+
+                else if (received.equals("get_personaggi_data"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true)
+                    {
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = false;
+
+                        o_nome = dis.readLine();
+                        ob_type = dis.readLine();
+
+
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + o_nome);
+                        while (rs.next())
+                        {
+
+                            if(o_nome.equals(rs.getString("nome"))) {
+                                find_category = true;
+                                send_id = rs.getInt("id");
+                            }
+                        }
+
+                        if(find_category == true)
+                        {
+
+                            rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.id = " + send_id);
+                            while (rs.next())
+                            {
+
+                                if(ob_type.equals("hp"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("hp")) + '\n');
+                                }
+
+                                else if(ob_type.equals("biografia"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(rs.getString("biografia") + '\n');
+                                }
+
+                                else if(ob_type.equals("razza"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(rs.getString("razza") + '\n');
+                                }
+
+                                else if(ob_type.equals("eta"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("eta")) + '\n');
+                                }
+
+                                else if(ob_type.equals("peso"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Float.toString(rs.getFloat("peso")) + '\n');
+                                }
+
+                                else if(ob_type.equals("altezza"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Float.toString(rs.getFloat("altezza")) + '\n');
+                                }
+
+                                //GET FOTO
+
+
+                                else if(ob_type.equals("hp_max"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("hp_max")) + '\n');
+                                }
+
+                                else if(ob_type.equals("is_character"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("is_character")) + '\n');
+                                }
+
+                                else if(ob_type.equals("is_npc"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("is_npc")) + '\n');
+                                }
+
+                                else if(ob_type.equals("is_riding_animal"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("is_riding_animal")) + '\n');
+                                }
+
+
+                                else if(ob_type.equals("is_enemy"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("is_enemy")) + '\n');
+                                }
+
+
+                                else if(ob_type.equals("punti_skill"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("punti_skill")) + '\n');
+                                }
+
+                                else if(ob_type.equals("is_enabled"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("is_enabled")) + '\n');
+                                }
+
+
+                                else
+                                {
+                                    dos.writeBytes("-3" + '\n');
+                                }
+                            }
+
+
+
+                        }
+                        else
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                    {
+                        dos.writeBytes("-1" + '\n');
+                    }
+                }
+
+
+                else if (received.equals("update_personaggi_data"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
+                    {
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = false;
+
+                        o_nome = dis.readLine();
+                        ob_type = dis.readLine();
+                        ob_data = dis.readLine();
+
+
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + o_nome);
+                        while (rs.next())
+                        {
+
+                            if(o_nome.equals(rs.getString("nome"))) {
+                                find_category = true;
+                                send_id = rs.getInt("id");
+                            }
+                        }
+
+                        if(find_category == true)
+                        {
+                            if(ob_type.equals("nome"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET nome = " + ob_data + " where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("hp"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET hp = " + Integer.parseInt(ob_data) + " where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("biografia"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET biografia = " + ob_data + " where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("razza"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET razza = " + ob_data + " where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("eta"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET eta = " + Integer.parseInt(ob_data) + " where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("peso"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET peso = " + Float.parseFloat(ob_data) + " where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("altezza"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET altezza = " + Float.parseFloat(ob_data) + " where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            //UPDATE FOTO
+
+
+
+
+                            //GAME MASTER ADD ON
+
+                            else if(ob_type.equals("hp_max"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET hp_max = " + Integer.parseInt(ob_data) + " where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("is_character"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET is_character = " + Integer.parseInt(ob_data) + " where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("is_npc"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET is_npc = " + Integer.parseInt(ob_data) + " where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("is_riding_animal"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET is_riding_animal = " + Integer.parseInt(ob_data) + " where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+
+                            else if(ob_type.equals("is_enemy"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET is_enemy = " + Integer.parseInt(ob_data) + " where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+
+                            else if(ob_type.equals("punti_skill"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET punti_skill = " + Integer.parseInt(ob_data) + " where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("is_enabled"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET is_enabled = " + Integer.parseInt(ob_data) + " where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+
+                            else
+                            {
+                                dos.writeBytes("-3" + '\n');
+                            }
+
+                        }
+                        else
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                    {
+                        dos.writeBytes("-1" + '\n');
+                    }
+                }
+
+
+                else if (received.equals("get_object_data"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true)
+                    {
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = false;
+
+                        o_nome = dis.readLine();
+                        ob_type = dis.readLine();
+
+
+                        rs = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_sessione = " + session_id + " AND o.nome = " + o_nome);
+                        while (rs.next())
+                        {
+
+                            if(o_nome.equals(rs.getString("nome"))) {
+                                find_category = true;
+                                send_id = rs.getInt("id");
+                            }
+                        }
+
+                        if(find_category == true)
+                        {
+
+                            rs = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_sessione = " + session_id + " AND o.id = " + send_id);
+                            while (rs.next())
+                            {
+
+                                if(ob_type.equals("descrizione"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(rs.getString("descrizione") + '\n');
+                                }
+
+                                else if(ob_type.equals("valore"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Float.toString(rs.getFloat("valore")) + '\n');
+                                }
+
+                                else if(ob_type.equals("campo1"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(rs.getString("campo1") + '\n');
+                                }
+
+                                else if(ob_type.equals("campo2"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(rs.getString("campo2") + '\n');
+                                }
+
+                                else if(ob_type.equals("campo3"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(rs.getString("campo3") + '\n');
+                                }
+
+                                else if(ob_type.equals("campo4"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(rs.getString("campo4") + '\n');
+                                }
+
+                                else if(ob_type.equals("campo5"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(rs.getString("campo5") + '\n');
+                                }
+
+                                else if(ob_type.equals("rarita_colore"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(rs.getString("rarita_colore") + '\n');
+                                }
+
+                                //GET FOTO
+
+                                else
+                                {
+                                    dos.writeBytes("-3" + '\n');
+                                }
+                            }
+
+
+
+                        }
+                        else
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                    {
+                        dos.writeBytes("-1" + '\n');
+                    }
+                }
+
+                else if (received.equals("update_object_data"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
+                    {
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = false;
+
+                        o_nome = dis.readLine();
+                        ob_type = dis.readLine();
+                        ob_data = dis.readLine();
+
+
+                        rs = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_sessione = " + session_id + " AND o.nome = " + o_nome);
+                        while (rs.next())
+                        {
+
+                            if(o_nome.equals(rs.getString("nome"))) {
+                                find_category = true;
+                                send_id = rs.getInt("id");
+                            }
+                        }
+
+                        if(find_category == true)
+                        {
+                            if(ob_type.equals("nome"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET nome = " + ob_data + " where Oggetti.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("descrizione"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET descrizione = " + ob_data + " where Oggetti.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("valore"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET valore = " + Float.parseFloat(ob_data) + " where Oggetti.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("campo1"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET campo1 = " + ob_data + " where Oggetti.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("campo2"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET campo2 = " + ob_data + " where Oggetti.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("campo3"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET campo3 = " + ob_data + " where Oggetti.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("campo4"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET campo4 = " + ob_data + " where Oggetti.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("campo5"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET campo5 = " + ob_data + " where Oggetti.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("rarita"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET rarita_colore = " + ob_data + " where Oggetti.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            //UPDATE FOTO
+
+
+                            else
+                            {
+                                dos.writeBytes("-3" + '\n');
+                            }
+
+                        }
+                        else
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                    {
+                        dos.writeBytes("-1" + '\n');
+                    }
+                }
 
 
 
