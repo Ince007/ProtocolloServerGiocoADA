@@ -212,6 +212,15 @@ class ClientHandler extends Thread
         int ob_id = 0, ch_id = 0, ob_quantity = 0, ob_numbers = 0;
         String ob_data = "", ob_type = "";
 
+        boolean is_trading_enabled1 = false;
+        boolean is_trading_enabled2 = false;
+
+        String trade_c_name1 = "", trade_c_name2 = "";
+        int trade_c_id1 = 0;
+        int trade_c_id2 = 0;
+        boolean find_trade1 = false;
+        boolean find_trade2 = false;
+
         while (is_closed == false)
         { 
             try { 
@@ -637,7 +646,7 @@ class ClientHandler extends Thread
                         dos.writeBytes("-1" + '\n');
                 }
 
-                else if (received.equals("get_user_backpack"))
+                else if (received.equals("get_user_backpack")) // DA CAMBIARE
                 {
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
 
@@ -676,6 +685,63 @@ class ClientHandler extends Thread
                             dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
                         }
 
+
+                    }
+                    else
+                        dos.writeBytes("-1" + '\n');
+                }
+
+                else if (received.equals("get_character_backpack"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
+
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        filter_item = dis.readLine(); //Mi prendo il nome del character
+
+                        find_character = false;
+
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.nome = " + filter_item + " AND p.is_character = 1 AND p.id_sessione = " + session_id);
+                        while (rs.next()) {
+                            find_character = true;
+                            send_id = rs.getInt("id");
+                        }
+
+
+                        number_items_b = 0;
+
+                        if(find_character == true)
+                        {
+
+                            rs = stmt.executeQuery("SELECT * from R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + send_id);
+                            while (rs.next()) {
+
+                                number_items_b++;
+
+                            }
+
+                            dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
+
+                            image = null;
+
+                            rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + send_id);
+                            while (rs.next()) {
+
+                                dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
+                                dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
+
+                                image = rs.getBlob("foto");
+                                byte barr[] = image.getBytes(1, (int) image.length());
+                                dos.write(barr);
+
+                                //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
+                                dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+                                dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
+                            }
+                        }
+                        else
+                            dos.writeBytes("-2" + '\n');
 
                     }
                     else
@@ -793,6 +859,130 @@ class ClientHandler extends Thread
                                 dos.writeBytes("right_greaves" + '\n');
 
                             }
+
+                            dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
+                            dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
+
+                            image = rs.getBlob("foto");
+                            byte barr[] = image.getBytes(1,(int)image.length());
+                            dos.write(barr);
+
+                            //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
+                            dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+                        }
+
+
+                    }
+                    else
+                        dos.writeBytes("-1" + '\n');
+                }
+
+                else if (received.equals("get_equipment_from_category"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
+
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        number_items_b = 0;
+
+                        c_name = dis.readLine();
+
+
+                        if(c_name.equals("head"))
+                        {
+                            ob_type = "is_head_eq";
+                        }
+                        else if (c_name.equals("torso"))
+                        {
+                            ob_type = "is_torso_eq";
+                        }
+
+                        else if (c_name.equals("left_arm"))
+                        {
+                            ob_type = "is_left_arm_eq";
+                        }
+
+                        else if (c_name.equals("right_arm"))
+                        {
+                            ob_type = "is_right_arm_eq";
+                        }
+
+                        else if (c_name.equals("left_leg"))
+                        {
+                            ob_type = "is_left_leg_eq";
+                        }
+
+                        else if (c_name.equals("right_leg"))
+                        {
+                            ob_type = "is_right_leg_eq";
+                        }
+
+                        else if (c_name.equals("first_weapon"))
+                        {
+                            ob_type = "is_first_weapon_eq";
+                        }
+
+                        else if (c_name.equals("secondary_weapon"))
+                        {
+                            ob_type = "is_secondary_weapon_eq";
+                        }
+
+                        else if (c_name.equals("gloves"))
+                        {
+                            ob_type = "is_gloves_eq";
+                        }
+
+                        else if (c_name.equals("left_gloves"))
+                        {
+                            ob_type = "is_left_gloves_eq";
+                        }
+
+                        else if (c_name.equals("right_gloves"))
+                        {
+                            ob_type = "is_right_gloves_eq";
+                        }
+
+                        else if (c_name.equals("shoes"))
+                        {
+                            ob_type = "is_shoes_eq";
+                        }
+
+                        else if (c_name.equals("greaves"))
+                        {
+                            ob_type = "is_greaves_eq";
+                        }
+
+                        else if (c_name.equals("left_greaves"))
+                        {
+                            ob_type = "is_left_greaves_eq";
+                        }
+
+                        else if (c_name.equals("right_greaves"))
+                        {
+                            ob_type = "is_right_greaves_eq";
+                        }
+                        else
+                        {
+                            ob_type = null;
+                        }
+
+
+                        rs = stmt.executeQuery("SELECT * from R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + character_id + " AND " + ob_type + " = 1");
+                        while (rs.next()) {
+
+                            number_items_b++;
+
+                        }
+
+                        dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
+
+                        image = null;
+
+                        rs = stmt.executeQuery("SELECT * from R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + character_id + " AND " + ob_type + " = 1");
+                        while (rs.next()) {
+
+
 
                             dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
                             dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
@@ -1042,18 +1232,45 @@ class ClientHandler extends Thread
                 {
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
 
+                        is_trading_enabled1 = false;
+                        is_trading_enabled2 = false;
+
                         dos.writeBytes("1" + '\n');
 
                         trade_name_c = dis.readLine();
 
                         find_trade = false;
+
+                        rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + character_id + " AND p.is_character = 1");
+                        while (rs_temp.next()) {
+
+                            if(rs.getInt("is_trading_enabled") == 0)
+                            {
+                                is_trading_enabled1 = false;
+                            }
+                            else
+                            {
+                                is_trading_enabled1 = true;
+                            }
+                        }
+
+
                         rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + trade_name_c + " AND p.is_character = 1");
                         while (rs_temp.next()) {
                             find_trade = true;
                             send_id = rs.getInt("id");
+
+                            if(rs.getInt("is_trading_enabled") == 0)
+                            {
+                                is_trading_enabled2 = false;
+                            }
+                            else
+                            {
+                                is_trading_enabled2 = true;
+                            }
                         }
 
-                        if(find_trade)
+                        if(find_trade && is_trading_enabled2 && is_trading_enabled1)
                         {
                             dos.writeBytes("1" + '\n');
 
@@ -1277,6 +1494,276 @@ class ClientHandler extends Thread
                 }
 
 
+                //TRADING FROM
+                else if (received.equals("trading_from"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
+
+                        is_trading_enabled1 = false;
+                        is_trading_enabled2 = false;
+
+                        dos.writeBytes("1" + '\n');
+
+                        trade_c_name1 = dis.readLine();
+                        trade_c_name2 = dis.readLine();
+
+                        find_trade1 = false;
+                        find_trade2 = false;
+
+                        rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + trade_c_name1 + " AND p.is_character = 1");
+                        while (rs_temp.next()) {
+
+                            find_trade1 = true;
+
+
+                            if(rs.getInt("is_trading_enabled") == 0)
+                            {
+                                is_trading_enabled1 = false;
+                            }
+                            else
+                            {
+                                is_trading_enabled1 = true;
+                            }
+                        }
+
+
+                        rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + trade_c_name2 + " AND p.is_character = 1");
+                        while (rs_temp.next()) {
+                            find_trade2 = true;
+                            send_id = rs.getInt("id");
+
+                            if(rs.getInt("is_trading_enabled") == 0)
+                            {
+                                is_trading_enabled2 = false;
+                            }
+                            else
+                            {
+                                is_trading_enabled2 = true;
+                            }
+                        }
+
+                        if(find_trade1 && find_trade2 && is_trading_enabled2 && is_trading_enabled1)
+                        {
+                            dos.writeBytes("1" + '\n');
+
+                            number_item_trade_1 = Integer.parseInt(dis.readLine());
+
+                            number_item_trade_2 = Integer.parseInt(dis.readLine());
+
+                            for(i = 0; i < number_item_trade_1; i++)
+                            {
+                                trade_q_1[i] = Integer.parseInt(dis.readLine());
+                                trade_o_1[i] = dis.readLine();
+                            }
+
+                            for(i = 0; i < number_item_trade_2; i++)
+                            {
+                                trade_q_2[i] = Integer.parseInt(dis.readLine());
+                                trade_o_2[i] = dis.readLine();
+                            }
+
+
+                            is_o1_ok = true;
+                            is_o2_ok = true;
+
+                            for(i = 0; i < number_item_trade_1; i++)
+                            {
+                                find_trade = false;
+                                rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + trade_c_id1 + " AND o.nome = " + trade_o_1[i] + " AND rpo.quantita <= " + trade_q_1[i]);
+                                while (rs_temp.next()) {
+                                    find_trade = true;
+                                    id_items_1[i] = rs_temp.getInt("id");
+                                    quantity_items_1[i] = rs_temp.getInt("quantita");
+                                }
+
+                                if(find_trade == false)
+                                {
+                                    is_o1_ok = false;
+                                    break;
+                                }
+                            }
+
+                            for(i = 0; i < number_item_trade_2; i++)
+                            {
+                                find_trade = false;
+                                rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + trade_c_id2 + " AND o.nome = " + trade_o_2[i] + " AND rpo.quantita <= " + trade_q_2[i]);
+                                while (rs_temp.next()) {
+                                    find_trade = true;
+                                    id_items_2[i] = rs_temp.getInt("id");
+                                    //Salvati i dati della quantità
+                                    quantity_items_2[i] = rs_temp.getInt("quantita");
+                                }
+
+                                if(find_trade == false)
+                                {
+                                    is_o2_ok = false;
+                                    break;
+                                }
+                            }
+
+
+                            is_null_1 = false;
+
+                            if(is_o1_ok == true && is_o2_ok == true)
+                            {
+
+                                //Faccio l'update del primo utente
+
+                                for(i = 0; i < number_item_trade_1; i++)
+                                {
+                                    if(quantity_items_1[i] - trade_q_1[i] == 0)
+                                    {
+                                        pstmt = conn.prepareStatement("DELETE FROM R_Personaggio_Oggetto WHERE id_personaggio = ? AND id_oggetto = ?");
+                                        pstmt.setInt(1, trade_c_id1);
+                                        pstmt.setInt(2, id_items_1[i]);
+                                        pstmt.execute();
+                                        pstmt.close(); // rilascio le risorse
+                                    }
+
+                                    else if (quantity_items_1[i] - trade_q_1[i] > 0)
+                                    {
+                                        x = quantity_items_1[i] - trade_q_1[i];
+                                        pstmt = conn.prepareStatement("UPDATE FROM R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + trade_c_id1 + " AND id_oggetto = " + id_items_1[i]);
+                                        //pstmt.setInt(1, character_id);
+                                        //pstmt.setInt(2, id_items_1[i]);
+                                        pstmt.execute();
+                                        pstmt.close(); // rilascio le risorse
+                                    }
+
+                                    else
+                                        is_null_1 = true;
+
+                                }
+
+
+                                //Faccio l'update del secondo utente
+
+                                for(i = 0; i < number_item_trade_2; i++)
+                                {
+                                    if(quantity_items_2[i] - trade_q_2[i] == 0)
+                                    {
+                                        pstmt = conn.prepareStatement("DELETE FROM R_Personaggio_Oggetto WHERE id_personaggio = ? AND id_oggetto = ?");
+                                        pstmt.setInt(1, trade_c_id2);
+                                        pstmt.setInt(2, id_items_2[i]);
+                                        pstmt.execute();
+                                        pstmt.close(); // rilascio le risorse
+                                    }
+
+                                    else if (quantity_items_2[i] - trade_q_2[i] > 0)
+                                    {
+                                        x = quantity_items_2[i] - trade_q_2[i];
+                                        pstmt = conn.prepareStatement("UPDATE FROM R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + trade_c_id2 + " AND id_oggetto = " + id_items_2[i]);
+                                        //pstmt.setInt(1, character_id);
+                                        //pstmt.setInt(2, id_items_1[i]);
+                                        pstmt.execute();
+                                        pstmt.close(); // rilascio le risorse
+                                    }
+
+                                    else
+                                        is_null_2 = true;
+
+                                }
+
+
+                                if(is_null_1 == false && is_null_2 == false)
+                                {
+                                    //Adesso aggiungo gli oggetti del trading del secondo giocatore al primo giocatore
+                                    for(i = 0; i < number_item_trade_2; i++)
+                                    {
+                                        find_trade = false;
+                                        rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + trade_c_id2 + " AND rpo.id_oggetto = " + id_items_2[i]);
+                                        while (rs_temp.next()) {
+                                            find_trade = true;
+                                            x = rs_temp.getInt("quantita");
+                                        }
+
+                                        if(find_trade == true)
+                                        {
+                                            x = x + quantity_items_2[i];
+
+                                            pstmt = conn.prepareStatement("UPDATE FROM R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + trade_c_id1 + " AND id_oggetto = " + id_items_2[i]);
+                                            //pstmt.setInt(1, character_id);
+                                            //pstmt.setInt(2, id_items_1[i]);
+                                            pstmt.execute();
+                                            pstmt.close(); // rilascio le risorse
+                                        }
+                                        else
+                                        {
+                                            pstmt = conn.prepareStatement("INSERT INTO R_Personaggio_Oggetto " + "(id_personaggio, id_oggetto, quantita) values (?,?,?)");
+                                            pstmt.setInt(1, trade_c_id1);
+                                            pstmt.setInt(2, id_items_2[i]);
+                                            pstmt.setInt(3, trade_q_2[i]);
+                                            pstmt.execute();
+                                            pstmt.close(); // rilascio le risorse
+                                        }
+
+
+
+                                    }
+
+
+                                    //Adesso aggiungo gli oggetti del trading del primo giocatore al secondo giocatore
+                                    for(i = 0; i < number_item_trade_1; i++)
+                                    {
+                                        find_trade = false;
+                                        rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + trade_c_id2 + " AND rpo.id_oggetto = " + id_items_1[i]);
+                                        while (rs_temp.next()) {
+                                            find_trade = true;
+                                            x = rs_temp.getInt("quantita");
+                                        }
+
+                                        if(find_trade == true)
+                                        {
+                                            x = x + quantity_items_2[i];
+
+                                            pstmt = conn.prepareStatement("UPDATE FROM R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + trade_c_id2 + " AND id_oggetto = " + id_items_1[i]);
+                                            //pstmt.setInt(1, character_id);
+                                            //pstmt.setInt(2, id_items_1[i]);
+                                            pstmt.execute();
+                                            pstmt.close(); // rilascio le risorse
+                                        }
+                                        else
+                                        {
+                                            pstmt = conn.prepareStatement("INSERT INTO R_Personaggio_Oggetto " + "(id_personaggio, id_oggetto, quantita) values (?,?,?)");
+                                            pstmt.setInt(1, trade_c_id2);
+                                            pstmt.setInt(2, id_items_1[i]);
+                                            pstmt.setInt(3, trade_q_1[i]);
+                                            pstmt.execute();
+                                            pstmt.close(); // rilascio le risorse
+                                        }
+
+
+                                        dos.writeBytes("1" + '\n');
+
+
+                                    }
+                                }
+                                else
+                                {
+                                    dos.writeBytes("-4" + '\n');
+                                }
+
+
+                            }
+
+
+
+                            else
+                            {
+                                dos.writeBytes("-3" + '\n');
+                            }
+
+                        }
+                        else
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+
+
+                    }
+                    else
+                        dos.writeBytes("-1" + '\n');
+                }
 
                 //Get quantity of object per character
                 //restituisce 1 perchè è entrato poi 1 se ha trovato l'oggetto sul character e lo restituisce poi -2 se non ha trovato l'oggetto e -1 se c'è errore
@@ -1871,13 +2358,146 @@ class ClientHandler extends Thread
                     }
                 }
 
+
+                //Unlock trading
+                else if (received.equals("unlock_trading"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
+                    {
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = false;
+
+                        character_nome = dis.readLine();
+
+
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + character_nome);
+                        while (rs.next())
+                        {
+
+                            if(character_nome.equals(rs.getString("nome"))) {
+                                find_category = true;
+                                send_id = rs.getInt("id");
+                            }
+                        }
+
+                        if(find_category == true)
+                        {
+                            pstmt = conn.prepareStatement("UPDATE Personaggi SET is_trading_enabled = '1' where Personaggi.id = " + send_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+
+                            dos.writeBytes("1" + '\n');
+
+                        }
+                        else
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                    {
+                        dos.writeBytes("-1" + '\n');
+                    }
+                }
+
+
+                //Unlock trading
+                else if (received.equals("lock_trading"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
+                    {
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = false;
+
+                        character_nome = dis.readLine();
+
+
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + character_nome);
+                        while (rs.next())
+                        {
+
+                            if(character_nome.equals(rs.getString("nome"))) {
+                                find_category = true;
+                                send_id = rs.getInt("id");
+                            }
+                        }
+
+                        if(find_category == true)
+                        {
+                            pstmt = conn.prepareStatement("UPDATE Personaggi SET is_trading_enabled = '0' where Personaggi.id = " + send_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+
+                            dos.writeBytes("1" + '\n');
+
+                        }
+                        else
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                    {
+                        dos.writeBytes("-1" + '\n');
+                    }
+                }
+
+
                 // Game master
 
-                //Update punti skill
 
-                //Unlock and lock trading
+                //Avaiable lista di equipaggiamenti di oggetti non equipaggiati
+
 
                 //Show all items
+                else if (received.equals("show_items"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
+
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        number_items_b = 0;
+
+                        rs = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_sessione = " + session_id);
+                        while (rs.next()) {
+                            number_items_b++;
+                        }
+
+                        dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
+
+                        image = null;
+
+                        rs = stmt.executeQuery("SELECT * from Oggetti o WHERE rpo.id_sessione = " + session_id);
+                        while (rs.next()) {
+
+                            dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
+                            dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
+
+                            image = rs.getBlob("foto");
+                            byte barr[] = image.getBytes(1,(int)image.length());
+                            dos.write(barr);
+
+                            //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
+                            dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+                            dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
+                        }
+
+
+                    }
+                    else
+                        dos.writeBytes("-1" + '\n');
+                }
+
+
+
+                //Update punti skill // DA non fare adesso
+
+
 
                 //Show all monsters
 
@@ -1890,7 +2510,53 @@ class ClientHandler extends Thread
 
 
 
+
+
                 //Remove object from character
+                else if (received.equals("remove_object_character"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
+
+
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_object = false;
+
+                        o_nome = dis.readLine(); //Mi prendo il nome dell'oggetto
+                        ob_quantity = Integer.parseInt(dis.readLine());
+
+
+
+
+                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + character_id + " AND o.id_sessione = " + session_id + " AND o.nome = " + o_nome);
+                        while (rs.next()) {
+
+                            find_object = true;
+                            ob_id = rs.getInt("o.id");
+                        }
+
+
+                        if(find_object == false)
+                        {
+                            dos.writeBytes("-2" + '\n');
+                        }
+
+                        else
+                        {
+                            pstmt = conn.prepareStatement("DELETE FROM R_Personaggio_Oggetto WHERE id_personaggio = ? AND id_oggetto = ?");
+                            pstmt.setInt(1, character_id);
+                            pstmt.setInt(2, ob_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+                            dos.writeBytes("1" + '\n');
+                        }
+
+                    }
+                    else
+                        dos.writeBytes("-1" + '\n');
+                }
+
+
 
 
                 else if (received.equals("update_session_data"))
