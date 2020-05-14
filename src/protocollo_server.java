@@ -38,7 +38,7 @@ public class protocollo_server {
 	public static void main(String[] args) throws IOException  
     { 
         // server is listening on port 6789
-        ServerSocket ss = new ServerSocket(8080);
+        ServerSocket ss = new ServerSocket(6789);
         Thread t[] = new Thread[300];
         int number_client_connected = 0;
         // running infinite loop for getting 
@@ -268,7 +268,7 @@ class ClientHandler extends Thread
 	                        find_user = false;
 	
 	                        // recupero i dati
-	                        rs = stmt.executeQuery("SELECT * from Utenti where Utenti.nome_utente = " + username);
+	                        rs = stmt.executeQuery("SELECT * from Utenti where Utenti.nome_utente = '" + username + "'");
 
 	                        //Controllo nel database dell'esistenza dell'utente e assegnazione di quest'ultimo ad 1 dello stato di login
 	
@@ -701,7 +701,7 @@ class ClientHandler extends Thread
 
                         find_character = false;
 
-                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.nome = " + filter_item + " AND p.is_character = 1 AND p.id_sessione = " + session_id);
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.nome = '" + filter_item + "' AND p.is_character = 1 AND p.id_sessione = " + session_id);
                         while (rs.next()) {
                             find_character = true;
                             send_id = rs.getInt("id");
@@ -1013,7 +1013,7 @@ class ClientHandler extends Thread
 
                         filter_item = dis.readLine(); //Mi prendo il filtro
 
-                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id INNER JOIN Categorie c ON c.id = o.id_categoria WHERE rpo.id_personaggio = " + character_id + " AND c.nome = " + filter_item);
+                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id INNER JOIN Categorie c ON c.id = o.id_categoria WHERE rpo.id_personaggio = " + character_id + " AND c.nome = '" + filter_item + "'");
                         while (rs.next()) {
 
                             number_items_b++;
@@ -1024,7 +1024,7 @@ class ClientHandler extends Thread
 
                         image = null;
 
-                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id INNER JOIN Categorie c ON c.id = o.id_categoria WHERE rpo.id_personaggio = " + character_id + " AND c.nome = " + filter_item);
+                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id INNER JOIN Categorie c ON c.id = o.id_categoria WHERE rpo.id_personaggio = " + character_id + " AND c.nome = '" + filter_item + "'");
                         while (rs.next()) {
 
                             dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
@@ -1150,7 +1150,7 @@ class ClientHandler extends Thread
 
                         find_category = false;
 
-                        rs = stmt.executeQuery("SELECT * from Category c WHERE c.nome = " + c_name + " AND c.id_sessione = " + session_id);
+                        rs = stmt.executeQuery("SELECT * from Category c WHERE c.nome = '" + c_name + "' AND c.id_sessione = " + session_id);
                         while (rs.next()) {
                             find_category = true;
                             category_id = rs.getInt("id");
@@ -1241,7 +1241,7 @@ class ClientHandler extends Thread
 
                         find_trade = false;
 
-                        rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + character_id + " AND p.is_character = 1");
+                        rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.id = " + character_id + " AND p.is_character = 1");
                         while (rs_temp.next()) {
 
                             if(rs.getInt("is_trading_enabled") == 0)
@@ -1255,7 +1255,7 @@ class ClientHandler extends Thread
                         }
 
 
-                        rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + trade_name_c + " AND p.is_character = 1");
+                        rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + trade_name_c + "' AND p.is_character = 1");
                         while (rs_temp.next()) {
                             find_trade = true;
                             send_id = rs.getInt("id");
@@ -1297,7 +1297,7 @@ class ClientHandler extends Thread
                             for(i = 0; i < number_item_trade_1; i++)
                             {
                                 find_trade = false;
-                                rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + character_id + " AND o.nome = " + trade_o_1[i] + " AND rpo.quantita <= " + trade_q_1[i]);
+                                rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + character_id + " AND o.nome = '" + trade_o_1[i] + "' AND rpo.quantita <= " + trade_q_1[i]);
                                 while (rs_temp.next()) {
                                     find_trade = true;
                                     id_items_1[i] = rs_temp.getInt("id");
@@ -1314,7 +1314,7 @@ class ClientHandler extends Thread
                             for(i = 0; i < number_item_trade_2; i++)
                             {
                                 find_trade = false;
-                                rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + send_id + " AND o.nome = " + trade_o_2[i] + " AND rpo.quantita <= " + trade_q_2[i]);
+                                rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + send_id + " AND o.nome = '" + trade_o_2[i] + "' AND rpo.quantita <= " + trade_q_2[i]);
                                 while (rs_temp.next()) {
                                     find_trade = true;
                                     id_items_2[i] = rs_temp.getInt("id");
@@ -1510,7 +1510,7 @@ class ClientHandler extends Thread
                         find_trade1 = false;
                         find_trade2 = false;
 
-                        rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + trade_c_name1 + " AND p.is_character = 1");
+                        rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + trade_c_name1 + "' AND p.is_character = 1");
                         while (rs_temp.next()) {
 
                             find_trade1 = true;
@@ -1527,7 +1527,7 @@ class ClientHandler extends Thread
                         }
 
 
-                        rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + trade_c_name2 + " AND p.is_character = 1");
+                        rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + trade_c_name2 + "' AND p.is_character = 1");
                         while (rs_temp.next()) {
                             find_trade2 = true;
                             send_id = rs.getInt("id");
@@ -1569,7 +1569,7 @@ class ClientHandler extends Thread
                             for(i = 0; i < number_item_trade_1; i++)
                             {
                                 find_trade = false;
-                                rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + trade_c_id1 + " AND o.nome = " + trade_o_1[i] + " AND rpo.quantita <= " + trade_q_1[i]);
+                                rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + trade_c_id1 + " AND o.nome = '" + trade_o_1[i] + "' AND rpo.quantita <= " + trade_q_1[i]);
                                 while (rs_temp.next()) {
                                     find_trade = true;
                                     id_items_1[i] = rs_temp.getInt("id");
@@ -1586,7 +1586,7 @@ class ClientHandler extends Thread
                             for(i = 0; i < number_item_trade_2; i++)
                             {
                                 find_trade = false;
-                                rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + trade_c_id2 + " AND o.nome = " + trade_o_2[i] + " AND rpo.quantita <= " + trade_q_2[i]);
+                                rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + trade_c_id2 + " AND o.nome = '" + trade_o_2[i] + "' AND rpo.quantita <= " + trade_q_2[i]);
                                 while (rs_temp.next()) {
                                     find_trade = true;
                                     id_items_2[i] = rs_temp.getInt("id");
@@ -1776,7 +1776,7 @@ class ClientHandler extends Thread
                         trade_name_c = dis.readLine();
 
                         find_trade = false;
-                        rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + character_id + " AND o.nome = " + trade_name_c);
+                        rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + character_id + " AND o.nome = '" + trade_name_c + "'");
                         while (rs_temp.next()) {
                             find_trade = true;
                             quantity_items_1[0] = rs_temp.getInt("quantita");
@@ -1813,7 +1813,7 @@ class ClientHandler extends Thread
 
 
                         find_trade = false;
-                        rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id INNER JOIN Personaggi p on p.id = rpo.id_personaggio WHERE p.nome = " + c_name + " AND o.nome = " + trade_name_c);
+                        rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id INNER JOIN Personaggi p on p.id = rpo.id_personaggio WHERE p.nome = '" + c_name + "' AND o.nome = '" + trade_name_c + "'");
                         while (rs_temp.next()) {
                             find_trade = true;
                             quantity_items_1[0] = rs_temp.getInt("quantita");
@@ -2017,7 +2017,7 @@ class ClientHandler extends Thread
                         s_sottotitolo = dis.readLine();
 
                         find_trade = false;
-                        rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.titolo = " + s_titolo);
+                        rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.titolo = '" + s_titolo + "'");
                         while (rs_temp.next()) {
                             find_trade = true;
                         }
@@ -2157,7 +2157,7 @@ class ClientHandler extends Thread
                         what_character = dis.readLine();
 
 
-                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on o.id = rpo.id_oggetto INNER JOIN Personaggio p on p.id = rpo.id_personaggio WHERE p.id_sessione = " + session_id + " AND p.id = " + character_id + " AND o.nome = " + c_name);
+                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on o.id = rpo.id_oggetto INNER JOIN Personaggio p on p.id = rpo.id_personaggio WHERE p.id_sessione = " + session_id + " AND p.id = " + character_id + " AND o.nome = '" + c_name + "'");
                         while (rs.next())
                         {
                             if(c_name.equals(rs.getString("o.nome"))) {
@@ -2282,7 +2282,7 @@ class ClientHandler extends Thread
                         character_hp = Integer.parseInt(dis.readLine());
 
 
-                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + character_nome);
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + character_nome + "'");
                         while (rs.next())
                         {
 
@@ -2327,7 +2327,7 @@ class ClientHandler extends Thread
                         character_hp_max = Integer.parseInt(dis.readLine());
 
 
-                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + character_nome);
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + character_nome + "'");
                         while (rs.next())
                         {
 
@@ -2371,7 +2371,7 @@ class ClientHandler extends Thread
                         character_nome = dis.readLine();
 
 
-                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + character_nome);
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + character_nome + "'");
                         while (rs.next())
                         {
 
@@ -2415,7 +2415,7 @@ class ClientHandler extends Thread
                         character_nome = dis.readLine();
 
 
-                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + character_nome);
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + character_nome + "'");
                         while (rs.next())
                         {
 
@@ -2528,7 +2528,7 @@ class ClientHandler extends Thread
 
 
 
-                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + character_id + " AND o.id_sessione = " + session_id + " AND o.nome = " + o_nome);
+                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + character_id + " AND o.id_sessione = " + session_id + " AND o.nome = '" + o_nome + "'");
                         while (rs.next()) {
 
                             find_object = true;
@@ -2572,7 +2572,7 @@ class ClientHandler extends Thread
                         ob_data = dis.readLine();
 
 
-                        rs = stmt.executeQuery("SELECT * from Sessioni p WHERE p.titolo = " + o_nome + " AND p.id_host = " + client_id);
+                        rs = stmt.executeQuery("SELECT * from Sessioni p WHERE p.titolo = '" + o_nome + "' AND p.id_host = " + client_id);
                         while (rs.next())
                         {
                             if(o_nome.equals(rs.getString("nome"))) {
@@ -2633,7 +2633,7 @@ class ClientHandler extends Thread
                         ob_type = dis.readLine();
 
 
-                        rs = stmt.executeQuery("SELECT * from Categorie p WHERE p.id_sessione = " + session_id + " AND p.nome = " + o_nome);
+                        rs = stmt.executeQuery("SELECT * from Categorie p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + o_nome + "'");
                         while (rs.next())
                         {
                             if(o_nome.equals(rs.getString("nome"))) {
@@ -2694,7 +2694,7 @@ class ClientHandler extends Thread
                         ob_data = dis.readLine();
 
 
-                        rs = stmt.executeQuery("SELECT * from Categorie p WHERE p.id_sessione = " + session_id + " AND p.nome = " + o_nome);
+                        rs = stmt.executeQuery("SELECT * from Categorie p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + o_nome + "'");
                         while (rs.next())
                         {
                             if(o_nome.equals(rs.getString("nome"))) {
@@ -2758,7 +2758,7 @@ class ClientHandler extends Thread
                         ob_type = dis.readLine();
 
 
-                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + o_nome);
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + o_nome + "'");
                         while (rs.next())
                         {
 
@@ -2894,7 +2894,7 @@ class ClientHandler extends Thread
                         ob_data = dis.readLine();
 
 
-                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + o_nome);
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + o_nome + "'");
                         while (rs.next())
                         {
 
@@ -3059,7 +3059,7 @@ class ClientHandler extends Thread
                         ob_type = dis.readLine();
 
 
-                        rs = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_sessione = " + session_id + " AND o.nome = " + o_nome);
+                        rs = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_sessione = " + session_id + " AND o.nome = '" + o_nome + "'");
                         while (rs.next())
                         {
 
@@ -3160,7 +3160,7 @@ class ClientHandler extends Thread
                         ob_data = dis.readLine();
 
 
-                        rs = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_sessione = " + session_id + " AND o.nome = " + o_nome);
+                        rs = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_sessione = " + session_id + " AND o.nome = '" + o_nome + "'");
                         while (rs.next())
                         {
 
@@ -3284,13 +3284,13 @@ class ClientHandler extends Thread
                         ob_quantity = Integer.parseInt(dis.readLine());
 
 
-                        rs = stmt.executeQuery("SELECT * from Categorie c WHERE c.id_sessione = " + session_id + " AND c.nome = " + c_name);
+                        rs = stmt.executeQuery("SELECT * from Categorie c WHERE c.id_sessione = " + session_id + " AND c.nome = '" + c_name + "'");
                         while (rs.next()) {
                             find_character = true;
                             ch_id = rs.getInt("id");
                         }
 
-                        rs = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_sessione = " + session_id + " AND o.nome = " + o_nome);
+                        rs = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_sessione = " + session_id + " AND o.nome = '" + o_nome + "'");
                         while (rs.next()) {
 
                             find_object = true;
@@ -3354,14 +3354,14 @@ class ClientHandler extends Thread
 
 
 
-                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = " + c_name);
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + c_name + "'");
                         while (rs.next()) {
 
                             find_character = true;
                             ch_id = rs.getInt("id");
                         }
 
-                        rs = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_sessione = " + session_id + " AND o.nome = " + o_nome);
+                        rs = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_sessione = " + session_id + " AND o.nome = '" + o_nome + "'");
                         while (rs.next()) {
 
                             find_object = true;
