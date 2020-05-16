@@ -197,6 +197,9 @@ class ClientHandler extends Thread
         float character_peso = 0, character_altezza = 0;
         String what_character = "";
 
+        String character_capelli = "", character_occhi = "", character_mark = "", character_cicatrici = "", character_tatuaggi = "", character_luogo_nascita = "", character_sesso = "", character_colore_pelle = "";
+        int character_anno_nascita = 0;
+
 
         String new_username = "", new_password = "", new_name = "", new_surname = "", new_email = "";
 
@@ -206,6 +209,8 @@ class ClientHandler extends Thread
 
 
         String o_nome = "", o_descrizione = "", o_campo1 = "", o_campo2 = "", o_campo3 = "", o_campo4 = "", o_campo5 = "", o_rarita = "";
+        float o_peso = 0, o_potenza = 0;
+        int o_durabilita = 0;
         float o_valore = 0;
 
         boolean find_object = false, find_character = false;
@@ -223,8 +228,11 @@ class ClientHandler extends Thread
 
         while (is_closed == false)
         { 
-            try { 
-                   
+            try {
+
+
+                //UPDATE DI TUTTI GLI UPDATE CON GLI ''
+
                 // receive the answer from client 
                 received = dis.readLine();
                 if(received.equals("connect"))      //CONNECT
@@ -373,6 +381,7 @@ class ClientHandler extends Thread
                     
 
                 }
+
 
 
                 //s
@@ -1118,6 +1127,7 @@ class ClientHandler extends Thread
                         while (rs.next()) {
                             dos.writeBytes(rs_temp.getString("nome") + '\n');
                             dos.writeBytes(rs_temp.getString("descrizione") + '\n');
+                            dos.writeBytes(rs_temp.getString("tipo_potenza") + '\n');
 
                             image = rs.getBlob("foto");
                             byte barr[] = image.getBytes(1,(int)image.length());
@@ -1351,9 +1361,7 @@ class ClientHandler extends Thread
                                     else if (quantity_items_1[i] - trade_q_1[i] > 0)
                                     {
                                         x = quantity_items_1[i] - trade_q_1[i];
-                                        pstmt = conn.prepareStatement("UPDATE FROM R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + character_id + " AND id_oggetto = " + id_items_1[i]);
-                                        //pstmt.setInt(1, character_id);
-                                        //pstmt.setInt(2, id_items_1[i]);
+                                        pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + character_id + " AND id_oggetto = " + id_items_1[i]);
                                         pstmt.execute();
                                         pstmt.close(); // rilascio le risorse
                                     }
@@ -1380,7 +1388,7 @@ class ClientHandler extends Thread
                                     else if (quantity_items_2[i] - trade_q_2[i] > 0)
                                     {
                                         x = quantity_items_2[i] - trade_q_2[i];
-                                        pstmt = conn.prepareStatement("UPDATE FROM R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + send_id + " AND id_oggetto = " + id_items_2[i]);
+                                        pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + send_id + " AND id_oggetto = " + id_items_2[i]);
                                         //pstmt.setInt(1, character_id);
                                         //pstmt.setInt(2, id_items_1[i]);
                                         pstmt.execute();
@@ -1409,7 +1417,7 @@ class ClientHandler extends Thread
                                         {
                                             x = x + quantity_items_2[i];
 
-                                            pstmt = conn.prepareStatement("UPDATE FROM R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + character_id + " AND id_oggetto = " + id_items_2[i]);
+                                            pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + character_id + " AND id_oggetto = " + id_items_2[i]);
                                             //pstmt.setInt(1, character_id);
                                             //pstmt.setInt(2, id_items_1[i]);
                                             pstmt.execute();
@@ -1444,7 +1452,7 @@ class ClientHandler extends Thread
                                         {
                                             x = x + quantity_items_2[i];
 
-                                            pstmt = conn.prepareStatement("UPDATE FROM R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + send_id + " AND id_oggetto = " + id_items_1[i]);
+                                            pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + send_id + " AND id_oggetto = " + id_items_1[i]);
                                             //pstmt.setInt(1, character_id);
                                             //pstmt.setInt(2, id_items_1[i]);
                                             pstmt.execute();
@@ -1623,7 +1631,7 @@ class ClientHandler extends Thread
                                     else if (quantity_items_1[i] - trade_q_1[i] > 0)
                                     {
                                         x = quantity_items_1[i] - trade_q_1[i];
-                                        pstmt = conn.prepareStatement("UPDATE FROM R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + trade_c_id1 + " AND id_oggetto = " + id_items_1[i]);
+                                        pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + trade_c_id1 + " AND id_oggetto = " + id_items_1[i]);
                                         //pstmt.setInt(1, character_id);
                                         //pstmt.setInt(2, id_items_1[i]);
                                         pstmt.execute();
@@ -1652,7 +1660,7 @@ class ClientHandler extends Thread
                                     else if (quantity_items_2[i] - trade_q_2[i] > 0)
                                     {
                                         x = quantity_items_2[i] - trade_q_2[i];
-                                        pstmt = conn.prepareStatement("UPDATE FROM R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + trade_c_id2 + " AND id_oggetto = " + id_items_2[i]);
+                                        pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + trade_c_id2 + " AND id_oggetto = " + id_items_2[i]);
                                         //pstmt.setInt(1, character_id);
                                         //pstmt.setInt(2, id_items_1[i]);
                                         pstmt.execute();
@@ -1681,7 +1689,7 @@ class ClientHandler extends Thread
                                         {
                                             x = x + quantity_items_2[i];
 
-                                            pstmt = conn.prepareStatement("UPDATE FROM R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + trade_c_id1 + " AND id_oggetto = " + id_items_2[i]);
+                                            pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + trade_c_id1 + " AND id_oggetto = " + id_items_2[i]);
                                             //pstmt.setInt(1, character_id);
                                             //pstmt.setInt(2, id_items_1[i]);
                                             pstmt.execute();
@@ -1716,7 +1724,7 @@ class ClientHandler extends Thread
                                         {
                                             x = x + quantity_items_2[i];
 
-                                            pstmt = conn.prepareStatement("UPDATE FROM R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + trade_c_id2 + " AND id_oggetto = " + id_items_1[i]);
+                                            pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET quantita = " + x + " WHERE id_personaggio = " + trade_c_id2 + " AND id_oggetto = " + id_items_1[i]);
                                             //pstmt.setInt(1, character_id);
                                             //pstmt.setInt(2, id_items_1[i]);
                                             pstmt.execute();
@@ -1856,6 +1864,17 @@ class ClientHandler extends Thread
                         character_altezza = Float.parseFloat(dis.readLine());
                         character_hp_max = Integer.parseInt(dis.readLine());
 
+                        character_capelli = dis.readLine();
+                        character_occhi = dis.readLine();
+                        character_mark = dis.readLine();
+                        character_cicatrici = dis.readLine();
+                        character_tatuaggi = dis.readLine();
+                        character_luogo_nascita = dis.readLine();
+                        character_sesso = dis.readLine();
+                        character_colore_pelle = dis.readLine();
+                        character_anno_nascita = Integer.parseInt(dis.readLine());
+
+
 
                         rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.is_character = 1 AND p.id_sessione = " + session_id);
                         while (rs.next()) {
@@ -1872,7 +1891,7 @@ class ClientHandler extends Thread
 
                         else
                         {
-                            pstmt = conn.prepareStatement("INSERT INTO Personaggi " + "(nome, hp, biografia, razza, eta, peso, altezza, hp_max, id_sessione, id_utente, is_character /*Immagine*/ ) values (?,?,?,?,?,?,?,?,?,?,?)");
+                            pstmt = conn.prepareStatement("INSERT INTO Personaggi " + "(nome, hp, biografia, razza, eta, peso, altezza, hp_max, id_sessione, id_utente, is_character, colore_capelli, colore_occhi, distinguersi_mark, cicatrici, tatuaggi, anno_nascita, luogo_nascita, sesso, colore_pelle /*Immagine*/ ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
 
                             pstmt.setString(1, c_name);
@@ -1886,6 +1905,16 @@ class ClientHandler extends Thread
                             pstmt.setInt(9, session_id);
                             pstmt.setInt(10, client_id);
                             pstmt.setInt(11, 1);
+
+                            pstmt.setString(12, character_capelli);
+                            pstmt.setString(13, character_occhi);
+                            pstmt.setString(14, character_mark);
+                            pstmt.setString(15, character_cicatrici);
+                            pstmt.setString(16, character_tatuaggi);
+                            pstmt.setInt(17, character_anno_nascita);
+                            pstmt.setString(18, character_luogo_nascita);
+                            pstmt.setString(19, character_sesso);
+                            pstmt.setString(20, character_colore_pelle);
 
                             //Inserimento foto
 
@@ -1920,6 +1949,16 @@ class ClientHandler extends Thread
                         character_hp_max = Integer.parseInt(dis.readLine());
                         what_character = dis.readLine();
 
+                        character_capelli = dis.readLine();
+                        character_occhi = dis.readLine();
+                        character_mark = dis.readLine();
+                        character_cicatrici = dis.readLine();
+                        character_tatuaggi = dis.readLine();
+                        character_luogo_nascita = dis.readLine();
+                        character_sesso = dis.readLine();
+                        character_colore_pelle = dis.readLine();
+                        character_anno_nascita = Integer.parseInt(dis.readLine());
+
                         rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id);
                         while (rs.next()) {
 
@@ -1935,7 +1974,7 @@ class ClientHandler extends Thread
 
                         else
                         {
-                            pstmt = conn.prepareStatement("INSERT INTO Personaggi " + "(nome, hp, biografia, razza, eta, peso, altezza, hp_max, id_sessione, id_utente, is_character, is_npc, is_riding_animal, is_enemy /*Immagine*/ ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                            pstmt = conn.prepareStatement("INSERT INTO Personaggi " + "(nome, hp, biografia, razza, eta, peso, altezza, hp_max, id_sessione, id_utente, is_character, is_npc, is_riding_animal, is_enemy,  colore_capelli, colore_occhi, distinguersi_mark, cicatrici, tatuaggi, anno_nascita, luogo_nascita, sesso, colore_pelle /*Immagine*/ ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
 
                             variable_return = "1";
@@ -1993,6 +2032,16 @@ class ClientHandler extends Thread
                             }
 
                             //Inserimento foto
+
+                            pstmt.setString(15, character_capelli);
+                            pstmt.setString(16, character_occhi);
+                            pstmt.setString(17, character_mark);
+                            pstmt.setString(18, character_cicatrici);
+                            pstmt.setString(19, character_tatuaggi);
+                            pstmt.setInt(20, character_anno_nascita);
+                            pstmt.setString(21, character_luogo_nascita);
+                            pstmt.setString(22, character_sesso);
+                            pstmt.setString(23, character_colore_pelle);
 
                             pstmt.execute();
                             pstmt.close(); // rilascio le risorse
@@ -2585,7 +2634,7 @@ class ClientHandler extends Thread
                         {
                             if(ob_type.equals("titolo"))
                             {
-                                pstmt = conn.prepareStatement("UPDATE Sessioni SET titolo = " + ob_data + " where Sessioni.id = " + send_id);
+                                pstmt = conn.prepareStatement("UPDATE Sessioni SET titolo = '" + ob_data + "' where Sessioni.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
                                 dos.writeBytes("1" + '\n');
@@ -2593,7 +2642,7 @@ class ClientHandler extends Thread
 
                             else if(ob_type.equals("sottotitolo"))
                             {
-                                pstmt = conn.prepareStatement("UPDATE Sessioni SET sottotitolo = " + ob_data + " where Sessioni.id = " + send_id);
+                                pstmt = conn.prepareStatement("UPDATE Sessioni SET sottotitolo = '" + ob_data + "' where Sessioni.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
                                 dos.writeBytes("1" + '\n');
@@ -2655,6 +2704,12 @@ class ClientHandler extends Thread
                                     dos.writeBytes(rs.getString("descrizione") + '\n');
                                 }
 
+                                else if(ob_type.equals("tipo_potenza"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(rs.getString("tipo_potenza") + '\n');
+                                }
+
 
                                 //GET FOTO
 
@@ -2707,7 +2762,7 @@ class ClientHandler extends Thread
                         {
                             if(ob_type.equals("nome"))
                             {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET nome = " + ob_data + " where Categorie.id = " + send_id);
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET nome = '" + ob_data + "' where Categorie.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
                                 dos.writeBytes("1" + '\n');
@@ -2715,7 +2770,15 @@ class ClientHandler extends Thread
 
                             else if(ob_type.equals("descrizione"))
                             {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET descrizione = " + ob_data + " where Categorie.id = " + send_id);
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET descrizione = '" + ob_data + "' where Categorie.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("tipo_potenza"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET tipo_potenza = '" + ob_data + "' where Categorie.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
                                 dos.writeBytes("1" + '\n');
@@ -2858,6 +2921,59 @@ class ClientHandler extends Thread
                                     dos.writeBytes( Integer.toString(rs.getInt("is_enabled")) + '\n');
                                 }
 
+                                else if(ob_type.equals("is_trading_enabled"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("is_trading_enabled")) + '\n');
+                                }
+
+                                else if(ob_type.equals("colore_capelli"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(rs.getString("colore_capelli") + '\n');
+                                }
+
+                                else if(ob_type.equals("distinguersi_mark"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(rs.getString("distinguersi_mark") + '\n');
+                                }
+
+                                else if(ob_type.equals("cicatrici"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(rs.getString("cicatrici") + '\n');
+                                }
+
+                                else if(ob_type.equals("tatuaggi"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(rs.getString("tatuaggi") + '\n');
+                                }
+
+                                else if(ob_type.equals("anno_nascita"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("anno_nascita")) + '\n');
+                                }
+
+                                else if(ob_type.equals("luogo_nascita"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(rs.getString("luogo_nascita") + '\n');
+                                }
+
+                                else if(ob_type.equals("sesso"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(rs.getString("sesso") + '\n');
+                                }
+
+                                else if(ob_type.equals("colore_pelle"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(rs.getString("colore_pelle") + '\n');
+                                }
 
                                 else
                                 {
@@ -2908,7 +3024,7 @@ class ClientHandler extends Thread
                         {
                             if(ob_type.equals("nome"))
                             {
-                                pstmt = conn.prepareStatement("UPDATE Personaggi SET nome = " + ob_data + " where Personaggi.id = " + send_id);
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET nome = '" + ob_data + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
                                 dos.writeBytes("1" + '\n');
@@ -2924,7 +3040,7 @@ class ClientHandler extends Thread
 
                             else if(ob_type.equals("biografia"))
                             {
-                                pstmt = conn.prepareStatement("UPDATE Personaggi SET biografia = " + ob_data + " where Personaggi.id = " + send_id);
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET biografia = '" + ob_data + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
                                 dos.writeBytes("1" + '\n');
@@ -2932,7 +3048,7 @@ class ClientHandler extends Thread
 
                             else if(ob_type.equals("razza"))
                             {
-                                pstmt = conn.prepareStatement("UPDATE Personaggi SET razza = " + ob_data + " where Personaggi.id = " + send_id);
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET razza = '" + ob_data + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
                                 dos.writeBytes("1" + '\n');
@@ -3027,6 +3143,78 @@ class ClientHandler extends Thread
                                 dos.writeBytes("1" + '\n');
                             }
 
+
+                            else if(ob_type.equals("colore_capelli"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET colore_capelli = '" + ob_data + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("colore_occhi"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET colore_occhi = '" + ob_data + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("distinguersi_mark"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET distinguersi_mark = '" + ob_data + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("cicatrici"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET cicatrici = '" + ob_data + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("tatuaggi"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET tatuaggi = '" + ob_data + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("anno_nascita"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET anno_nascita = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("luogo_nascita"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET luogo_nascita = '" + ob_data + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("sesso"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET sesso = '" + ob_data + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("colore_pelle"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET colore_pelle = '" + ob_data + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
 
                             else
                             {
@@ -3124,6 +3312,24 @@ class ClientHandler extends Thread
                                     dos.writeBytes(rs.getString("rarita_colore") + '\n');
                                 }
 
+                                else if(ob_type.equals("peso"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Float.toString(rs.getFloat("peso")) + '\n');
+                                }
+
+                                else if(ob_type.equals("durabilita"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("durabilita")) + '\n');
+                                }
+
+                                else if(ob_type.equals("potenza"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Float.toString(rs.getFloat("potenza")) + '\n');
+                                }
+
                                 //GET FOTO
 
                                 else
@@ -3174,7 +3380,7 @@ class ClientHandler extends Thread
                         {
                             if(ob_type.equals("nome"))
                             {
-                                pstmt = conn.prepareStatement("UPDATE Oggetti SET nome = " + ob_data + " where Oggetti.id = " + send_id);
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET nome = '" + ob_data + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
                                 dos.writeBytes("1" + '\n');
@@ -3182,7 +3388,7 @@ class ClientHandler extends Thread
 
                             else if(ob_type.equals("descrizione"))
                             {
-                                pstmt = conn.prepareStatement("UPDATE Oggetti SET descrizione = " + ob_data + " where Oggetti.id = " + send_id);
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET descrizione = '" + ob_data + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
                                 dos.writeBytes("1" + '\n');
@@ -3198,7 +3404,7 @@ class ClientHandler extends Thread
 
                             else if(ob_type.equals("campo1"))
                             {
-                                pstmt = conn.prepareStatement("UPDATE Oggetti SET campo1 = " + ob_data + " where Oggetti.id = " + send_id);
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET campo1 = '" + ob_data + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
                                 dos.writeBytes("1" + '\n');
@@ -3206,7 +3412,7 @@ class ClientHandler extends Thread
 
                             else if(ob_type.equals("campo2"))
                             {
-                                pstmt = conn.prepareStatement("UPDATE Oggetti SET campo2 = " + ob_data + " where Oggetti.id = " + send_id);
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET campo2 = '" + ob_data + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
                                 dos.writeBytes("1" + '\n');
@@ -3214,7 +3420,7 @@ class ClientHandler extends Thread
 
                             else if(ob_type.equals("campo3"))
                             {
-                                pstmt = conn.prepareStatement("UPDATE Oggetti SET campo3 = " + ob_data + " where Oggetti.id = " + send_id);
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET campo3 = '" + ob_data + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
                                 dos.writeBytes("1" + '\n');
@@ -3222,7 +3428,7 @@ class ClientHandler extends Thread
 
                             else if(ob_type.equals("campo4"))
                             {
-                                pstmt = conn.prepareStatement("UPDATE Oggetti SET campo4 = " + ob_data + " where Oggetti.id = " + send_id);
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET campo4 = '" + ob_data + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
                                 dos.writeBytes("1" + '\n');
@@ -3230,7 +3436,7 @@ class ClientHandler extends Thread
 
                             else if(ob_type.equals("campo5"))
                             {
-                                pstmt = conn.prepareStatement("UPDATE Oggetti SET campo5 = " + ob_data + " where Oggetti.id = " + send_id);
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET campo5 = '" + ob_data + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
                                 dos.writeBytes("1" + '\n');
@@ -3238,7 +3444,31 @@ class ClientHandler extends Thread
 
                             else if(ob_type.equals("rarita"))
                             {
-                                pstmt = conn.prepareStatement("UPDATE Oggetti SET rarita_colore = " + ob_data + " where Oggetti.id = " + send_id);
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET rarita_colore = '" + ob_data + "' where Oggetti.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("peso"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET peso = '" + Float.parseFloat(ob_data) + "' where Oggetti.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("durabilita"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET durabilita = '" + Integer.parseInt(ob_data) + "' where Oggetti.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("potenza"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Oggetti SET potenza = '" + Float.parseFloat(ob_data) + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
                                 dos.writeBytes("1" + '\n');
@@ -3436,6 +3666,10 @@ class ClientHandler extends Thread
                         o_campo4 = dis.readLine();
                         o_campo5 = dis.readLine();
                         o_valore = Float.parseFloat(dis.readLine());
+                        o_peso = Float.parseFloat(dis.readLine());
+                        o_potenza = Float.parseFloat(dis.readLine());
+                        o_durabilita = Integer.parseInt(dis.readLine());
+
                         //FOTO
 
 
@@ -3454,7 +3688,7 @@ class ClientHandler extends Thread
 
                         else
                         {
-                            pstmt = conn.prepareStatement("INSERT INTO Oggetti " + "(nome, descrizione, valore, campo1, campo2, campo3, campo4, campo5, rarita_colore, id_sessione) values (?,?,?,?,?,?,?,?,?,?)");
+                            pstmt = conn.prepareStatement("INSERT INTO Oggetti " + "(nome, descrizione, valore, campo1, campo2, campo3, campo4, campo5, rarita_colore, id_sessione, peso, durabilita, potenza) values (?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
 
                             pstmt.setString(1, o_nome);
@@ -3467,6 +3701,11 @@ class ClientHandler extends Thread
                             pstmt.setString(8, o_campo5);
                             pstmt.setString(9, o_rarita);
                             pstmt.setInt(10, session_id);
+
+                            pstmt.setFloat(11, o_peso);
+                            pstmt.setInt(12, o_durabilita);
+                            pstmt.setFloat(13, o_potenza);
+
                             pstmt.execute();
                             pstmt.close(); // rilascio le risorse
 
