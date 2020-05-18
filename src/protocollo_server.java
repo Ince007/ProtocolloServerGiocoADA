@@ -159,7 +159,10 @@ class ClientHandler extends Thread
         boolean is_character_connected = false;
         boolean is_host = false;
 
-        String c_name = "", c_desc = "";
+        String c_name = "", c_desc = "", c_type = "", c_tipo_potenza = "";
+        int c_numero_slot = 0;
+        String c_query1 = "", c_query2 = "", c_query3 = "";
+        int c_number = 0;
         boolean find_category = false;
 
         Blob image = null;
@@ -231,8 +234,6 @@ class ClientHandler extends Thread
             try {
 
 
-                //UPDATE DI TUTTI GLI UPDATE CON GLI ''
-
                 // receive the answer from client 
                 received = dis.readLine();
                 if(received.equals("connect"))      //CONNECT
@@ -245,14 +246,18 @@ class ClientHandler extends Thread
 	                    System.out.println("\nClient " + this.s + " want to connect to the database");
 	                    username = dis.readLine();
 	                    password = dis.readLine();
-	
+
+
+                        System.out.println("Username: " + username);
+                        System.out.println("Password: " + password);
 	
 	
 	
 	                    try {
 	                        Class.forName("com.mysql.jdbc.Driver");
 	                        conn = DriverManager.getConnection("jdbc:mysql://216.158.239.6/game?" + "user=inventorymaster&password=Rootinventory1!");
-	
+
+                            //conn = DriverManager.getConnection("jdbc:mysql://localhost/game?" + "user=root&password=");
 	
 	                        // creo la tabella
 	                        stmt = conn.createStatement();
@@ -276,7 +281,7 @@ class ClientHandler extends Thread
 	                        find_user = false;
 	
 	                        // recupero i dati
-	                        rs = stmt.executeQuery("SELECT * from Utenti where Utenti.nome_utente = '" + username + "'");
+	                        rs = stmt.executeQuery("SELECT * from Utenti");
 
 	                        //Controllo nel database dell'esistenza dell'utente e assegnazione di quest'ultimo ad 1 dello stato di login
 	
@@ -286,7 +291,6 @@ class ClientHandler extends Thread
 	                            {
 	                                find_user = true;
 	                                client_id = rs.getInt("id");
-                                    id = rs.getInt("id");
 	
 	                            }
 	
@@ -299,10 +303,7 @@ class ClientHandler extends Thread
                                 System.out.println("\nLoading Sessions: " + client_id);
                                 rs = stmt.executeQuery("SELECT * from R_Utente_Sessione rus where rus.id_utente = " + client_id);
                                 while (rs.next()) {
-
-
                                     number_sessions++;
-
                                 }
 
 
@@ -330,8 +331,15 @@ class ClientHandler extends Thread
 	                        /*stmt.close(); // rilascio le risorse
 	                        conn.close(); // termino la connessione*/
 
+                            conn_temp = DriverManager.getConnection("jdbc:mysql://216.158.239.6/game?" + "user=inventorymaster&password=Rootinventory1!");
+                            stmt_temp = conn_temp.createStatement();
+
 
 	                        System.out.println(variable_return);
+
+
+                            dos.writeBytes("\nCIAOAMICI come va");
+
 	                        dos.writeBytes(variable_return + '\n');
 
 
@@ -351,7 +359,7 @@ class ClientHandler extends Thread
 
                                     //Calcolo ed invio degli utenti online per quella sessione
                                     number_user_online_session = 0;
-                                    rs_temp = stmt.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE u.stato_login = 1 AND rus.id_sessione = " + rs.getString("id"));
+                                    rs_temp = stmt_temp.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE u.stato_login = 1 AND rus.id_sessione = " + rs.getString("id"));
                                     while (rs_temp.next()) {
                                         number_user_online_session++;
                                     }
@@ -1067,6 +1075,11 @@ class ClientHandler extends Thread
 
                         c_name = dis.readLine(); //Mi prendo il nome della categoria
                         c_desc = dis.readLine(); //Mi prendo la descrizione della categoria
+                        c_tipo_potenza = dis.readLine();
+                        c_numero_slot = Integer.parseInt(dis.readLine());
+
+                        //Mi prendo il numero di possibili equipaggiamenti per quella categoria
+                        c_number = Integer.parseInt(dis.readLine());
 
 
                         rs = stmt.executeQuery("SELECT * from Categorie c WHERE c.id_sessione = " + session_id);
@@ -1084,14 +1097,130 @@ class ClientHandler extends Thread
 
                         else
                         {
-                            pstmt = conn.prepareStatement("INSERT INTO Category " + "(nome, descrizione, id_sessione) values (?,?,?)");
-
-
+                            pstmt = conn.prepareStatement("INSERT INTO Categorie " + "(nome, descrizione, id_sessione, tipo_potenza, numero_slot) values (?,?,?,?,?)");
                             pstmt.setString(1, c_name);
                             pstmt.setString(2, c_desc);
                             pstmt.setInt(3, session_id);
+                            pstmt.setString(4, c_tipo_potenza);
+                            pstmt.setInt(5, c_numero_slot);
                             pstmt.execute();
                             pstmt.close(); // rilascio le risorse
+
+                            rs = stmt.executeQuery("SELECT * from Categorie c WHERE c.id_sessione = " + session_id);
+                            while (rs.next()) {
+
+                                if(c_name.equals(rs.getString("nome")))
+                                    send_id = rs.getInt("id");
+
+                            }
+
+                            dos.writeBytes("1" + '\n'); // Restituisco che è andato tutto a buon fine
+
+                            for(i = 0; i < c_number; i++)
+                            {
+                                c_type = dis.readLine();
+
+                                if(c_type.equals("head"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_head_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                                else if(c_type.equals("torso"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_torso_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                                else if(c_type.equals("left_arm"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_arm_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                                else if(c_type.equals("right_arm"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_arm_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                                else if(c_type.equals("left_leg"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_leg_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                                else if(c_type.equals("right_leg"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_leg_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                                else if(c_type.equals("first_weapon"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_first_weapon_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                                else if(c_type.equals("secondary_weapon"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_secondary_weapon_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                                else if(c_type.equals("gloves"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_gloves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                                else if(c_type.equals("left_gloves"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_gloves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                                else if(c_type.equals("right_gloves"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_gloves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                                else if(c_type.equals("shoes"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_shoes_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                                else if(c_type.equals("greaves"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_greaves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                                else if(c_type.equals("left_greaves"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_greaves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                                else if(c_type.equals("right_greaves"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_greaves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                                else if(c_type.equals("magic"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_magic_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                                else if(c_type.equals("other"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_other_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                                else if(c_type.equals("arms"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_arms_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                                else if(c_type.equals("legs"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_legs_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                                else if(c_type.equals("ammo"))
+                                {
+                                    pstmt = conn.prepareStatement("UPDATE Categorie SET is_ammo_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                }
+
+                            }
 
                             dos.writeBytes("1" + '\n');
                         }
@@ -1125,9 +1254,9 @@ class ClientHandler extends Thread
 
                         rs = stmt.executeQuery("SELECT * from Categorie c WHERE c.id_sessione = " + session_id);
                         while (rs.next()) {
-                            dos.writeBytes(rs_temp.getString("nome") + '\n');
-                            dos.writeBytes(rs_temp.getString("descrizione") + '\n');
-                            dos.writeBytes(rs_temp.getString("tipo_potenza") + '\n');
+                            dos.writeBytes(rs.getString("nome") + '\n');
+                            dos.writeBytes(rs.getString("descrizione") + '\n');
+                            dos.writeBytes(rs.getString("tipo_potenza") + '\n');
 
                             image = rs.getBlob("foto");
                             byte barr[] = image.getBytes(1,(int)image.length());
@@ -1140,6 +1269,58 @@ class ClientHandler extends Thread
                                 number_object_categories++;
                             }
                             dos.writeBytes(Integer.toString(number_object_categories) + '\n'); //Ritorno il numero di oggetti per categoria
+
+                        }
+
+
+
+                    }
+                    else
+                        dos.writeBytes("-1" + '\n');
+                }
+
+
+                //DA aggiornare
+                else if (received.equals("show_category_all"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true) {
+
+
+                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        number_categories = 0;
+
+                        rs = stmt.executeQuery("SELECT * from Categorie c WHERE c.id_sessione = " + session_id);
+                        while (rs.next()) {
+
+                            number_categories++;
+
+                        }
+
+                        dos.writeBytes(Integer.toString(number_categories) + '\n'); //Ritorno il numero di characters per quell'utente
+
+
+                        image = null;
+
+                        rs = stmt.executeQuery("SELECT * from Categorie c WHERE c.id_sessione = " + session_id);
+                        while (rs.next()) {
+                            dos.writeBytes(rs.getString("nome") + '\n');
+                            dos.writeBytes(rs.getString("descrizione") + '\n');
+                            dos.writeBytes(rs.getString("tipo_potenza") + '\n');
+
+                            image = rs.getBlob("foto");
+                            byte barr[] = image.getBytes(1,(int)image.length());
+                            dos.write(barr);
+
+                            number_object_categories = 0;
+
+                            rs_temp = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_categoria = " + rs.getString("id") + " AND o.id_sessione = " + session_id);
+                            while (rs_temp.next()) {
+                                number_object_categories++;
+                            }
+                            dos.writeBytes(Integer.toString(number_object_categories) + '\n'); //Ritorno il numero di oggetti per categoria
+
+
 
                         }
 
@@ -1254,7 +1435,7 @@ class ClientHandler extends Thread
                         rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.id = " + character_id + " AND p.is_character = 1");
                         while (rs_temp.next()) {
 
-                            if(rs.getInt("is_trading_enabled") == 0)
+                            if(rs_temp.getInt("is_trading_enabled") == 0)
                             {
                                 is_trading_enabled1 = false;
                             }
@@ -1270,7 +1451,7 @@ class ClientHandler extends Thread
                             find_trade = true;
                             send_id = rs.getInt("id");
 
-                            if(rs.getInt("is_trading_enabled") == 0)
+                            if(rs_temp.getInt("is_trading_enabled") == 0)
                             {
                                 is_trading_enabled2 = false;
                             }
@@ -1524,7 +1705,7 @@ class ClientHandler extends Thread
                             find_trade1 = true;
 
 
-                            if(rs.getInt("is_trading_enabled") == 0)
+                            if(rs_temp.getInt("is_trading_enabled") == 0)
                             {
                                 is_trading_enabled1 = false;
                             }
@@ -1540,7 +1721,7 @@ class ClientHandler extends Thread
                             find_trade2 = true;
                             send_id = rs.getInt("id");
 
-                            if(rs.getInt("is_trading_enabled") == 0)
+                            if(rs_temp.getInt("is_trading_enabled") == 0)
                             {
                                 is_trading_enabled2 = false;
                             }
@@ -2502,6 +2683,8 @@ class ClientHandler extends Thread
                 //Avaiable lista di equipaggiamenti di oggetti non equipaggiati
 
 
+
+
                 //Show all items
                 else if (received.equals("show_items"))
                 {
@@ -2670,6 +2853,7 @@ class ClientHandler extends Thread
                 }
 
 
+                //DA CAMBIARE
                 else if (received.equals("get_category_data"))
                 {
                     if(is_disconnect == false && is_connect == true && is_session_connected == true)
@@ -2713,6 +2897,132 @@ class ClientHandler extends Thread
 
                                 //GET FOTO
 
+
+                                else if(ob_type.equals("head"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_head_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("torso"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_torso_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("left_arm"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_left_arm_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("right_arm"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_right_arm_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("left_leg"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_left_leg_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("right_leg"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_right_leg_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("first_weapon"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_first_weapon_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("secondary_weapon"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_secondary_weapon_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("gloves"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_gloves_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("left_gloves"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_left_gloves_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("right_gloves"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_right_gloves_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("shoes"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_shoes_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("greaves"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_greaves_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("left_greaves"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_left_greaves_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("right_greaves"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_right_greaves_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("magic"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_magic_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("other"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_other_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("arms"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_arms_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("legs"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_legs_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("ammo"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("is_ammo_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("numero_slot"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes(Integer.toString(rs.getInt("numero_slot")) + '\n');
+                                }
 
                                 else
                                 {
@@ -2784,6 +3094,175 @@ class ClientHandler extends Thread
                                 dos.writeBytes("1" + '\n');
                             }
 
+                            else if(ob_type.equals("head"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_head_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("torso"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_torso_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("left_arm"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_arm_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("right_arm"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_arm_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("left_leg"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_leg_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("right_leg"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_leg_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("first_weapon"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_first_weapon_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("secondary_weapon"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_secondary_weapon_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("gloves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_gloves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("left_gloves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_gloves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("right_gloves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_gloves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("shoes"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_shoes_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("greaves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_greaves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("left_greaves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_greaves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("right_greaves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_greaves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("magic"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_magic_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("other"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_other_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("arms"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_arms_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("legs"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_legs_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("ammo"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_ammo_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("numero_slot"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET numero_slot = '" + Integer.parseInt(ob_data) + "' where Categorie.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+
 
                             //UPDATE FOTO
 
@@ -2804,6 +3283,17 @@ class ClientHandler extends Thread
                         dos.writeBytes("-1" + '\n');
                     }
                 }
+
+
+                /*
+
+                Nella sezione armi se equipaggio una categoria non posso equipaggiare altre
+
+                -Numero di equipaggiabili per ogni layer categoria
+                
+
+
+                 */
 
 
 
@@ -2973,6 +3463,72 @@ class ClientHandler extends Thread
                                 {
                                     dos.writeBytes("1" + '\n');
                                     dos.writeBytes(rs.getString("colore_pelle") + '\n');
+                                }
+
+                                else if(ob_type.equals("slot_head"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("slot_head")) + '\n');
+                                }
+
+                                else if(ob_type.equals("slot_torso"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("slot_torso")) + '\n');
+                                }
+
+                                else if(ob_type.equals("slot_arms"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("slot_arms")) + '\n');
+                                }
+
+                                else if(ob_type.equals("slot_legs"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("slot_legs")) + '\n');
+                                }
+
+                                else if(ob_type.equals("slot_weapons"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("slot_weapons")) + '\n');
+                                }
+
+                                else if(ob_type.equals("slot_gloves"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("slot_gloves")) + '\n');
+                                }
+
+                                else if(ob_type.equals("slot_shoes"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("slot_shoes")) + '\n');
+                                }
+
+                                else if(ob_type.equals("slot_greaves"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("slot_greaves")) + '\n');
+                                }
+
+                                else if(ob_type.equals("slot_magic"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("slot_magic")) + '\n');
+                                }
+
+                                else if(ob_type.equals("slot_other"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("slot_other")) + '\n');
+                                }
+
+                                else if(ob_type.equals("slot_ammo"))
+                                {
+                                    dos.writeBytes("1" + '\n');
+                                    dos.writeBytes( Integer.toString(rs.getInt("slot_ammo")) + '\n');
                                 }
 
                                 else
@@ -3211,6 +3767,94 @@ class ClientHandler extends Thread
                             else if(ob_type.equals("colore_pelle"))
                             {
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET colore_pelle = '" + ob_data + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("slot_head"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_head = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("slot_torso"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_torso = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("slot_arms"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_arms = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("slot_legs"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_legs = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("slot_weapons"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_weapons = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("slot_gloves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_gloves = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("slot_shoes"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_shoes = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("slot_greaves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_greaves = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("slot_magic"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_magic = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("slot_other"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_other = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("slot_ammo"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_ammo = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
                                 dos.writeBytes("1" + '\n');
