@@ -630,6 +630,13 @@ class ClientHandler extends Thread
 
                 //SONO ARRIVATO QUI
 
+                //CIAO
+
+                else if(received.equals("ciao"))
+                {
+
+                }
+
 
                 else if (received.equals("connect_character"))
                 {
