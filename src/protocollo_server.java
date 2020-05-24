@@ -38,7 +38,7 @@ public class protocollo_server {
 	public static void main(String[] args) throws IOException  
     { 
         // server is listening on port 6789
-        ServerSocket ss = new ServerSocket(6789);
+        ServerSocket ss = new ServerSocket(8181);
         Thread t[] = new Thread[300];
         int number_client_connected = 0;
         // running infinite loop for getting 
@@ -58,12 +58,13 @@ public class protocollo_server {
                 //DataInputStream dis = new DataInputStream(s.getInputStream());
                 DataOutputStream dos = new DataOutputStream(s.getOutputStream());
                 BufferedReader dis = new BufferedReader(new InputStreamReader(s.getInputStream()));
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
 
 
                 System.out.println("Assigning new thread for this client"); 
   
                 // create a new thread object 
-                t[number_client_connected] = new ClientHandler(s, dis, dos, number_client_connected);
+                t[number_client_connected] = new ClientHandler(s, dis, dos, number_client_connected, writer);
 
 
                 // Invoking the start() method 
@@ -89,13 +90,17 @@ class ClientHandler extends Thread
     private ResultSet resultSet = null;
 
 
+    private boolean is_ios = false;
+
+
 
 
     DateFormat fordate = new SimpleDateFormat("yyyy/MM/dd"); 
     DateFormat fortime = new SimpleDateFormat("hh:mm:ss"); 
     //final DataInputStream dis;
     final BufferedReader dis;
-    final DataOutputStream dos; 
+    final DataOutputStream dos;
+    final BufferedWriter writer;
     final Socket s;
     final int number;
 
@@ -104,13 +109,29 @@ class ClientHandler extends Thread
 
   
     // Constructor 
-    public ClientHandler(Socket s, BufferedReader dis, DataOutputStream dos, int number)
+    public ClientHandler(Socket s, BufferedReader dis, DataOutputStream dos, int number, BufferedWriter writer)
     {
         this.number = number;
         this.s = s; 
         this.dis = dis; 
-        this.dos = dos; 
-    } 
+        this.dos = dos;
+        this.writer = writer;
+
+
+    }
+
+    private void sendMessage(String message) throws InterruptedException, IOException {
+        //sleep(115);
+        if(is_ios == true) {
+            sleep(150);
+            dos.write(message.getBytes(), 0, message.getBytes().length);
+            dos.flush();
+        }
+        else
+        {
+            dos.writeBytes(message + '\n');
+        }
+    }
   
     @Override
     public void run()  
@@ -229,6 +250,23 @@ class ClientHandler extends Thread
         boolean find_trade1 = false;
         boolean find_trade2 = false;
 
+
+        is_ios = false;
+
+        try {
+            received = dis.readLine();
+            if(received.equals("ios"))
+            {
+                is_ios = true;
+            }
+            else
+            {
+                is_ios = false;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         while (is_closed == false)
         { 
             try {
@@ -244,6 +282,8 @@ class ClientHandler extends Thread
 	                	//CONNESSIONE AL DATABASE
 	
 	                    System.out.println("\nClient " + this.s + " want to connect to the database");
+
+
 	                    username = dis.readLine();
 	                    password = dis.readLine();
 
@@ -261,22 +301,16 @@ class ClientHandler extends Thread
 	
 	                        // creo la tabella
 	                        stmt = conn.createStatement();
+
+                            conn_temp = DriverManager.getConnection("jdbc:mysql://216.158.239.6/game?" + "user=inventorymaster&password=Rootinventory1!");
+                            stmt_temp = conn_temp.createStatement();
+
+
+
+
+                            this.s.setKeepAlive(true);
 	
-	                        /*
-	                        // inserisco due record
-	                        pstmt = conn.prepareStatement("INSERT INTO utenti " + "(nome, cognome, email, nome_utente, password) values (?)");
-	
-	                        pstmt.setString(1, "Mario");
-	                        pstmt.setString(2, "Rossi");
-	                        pstmt.setString(3, "ciccio@ciao123.it");
-	                        pstmt.setString(4, "maro");
-	                        pstmt.setString(5, "maro123");
-	                        pstmt.execute();
-	
-	                        System.out.println("id: " + rs.getString("id"));
-	                        System.out.println("firstname: " + rs.getString("firstname"));
-	                        System.out.println("lastname: " + rs.getString("lastname"));
-	                        */
+
 	
 	                        find_user = false;
 	
@@ -284,16 +318,13 @@ class ClientHandler extends Thread
 	                        rs = stmt.executeQuery("SELECT * from Utenti");
 
 	                        //Controllo nel database dell'esistenza dell'utente e assegnazione di quest'ultimo ad 1 dello stato di login
-	
 	                        while(rs.next() && find_user == false)
 	                        {
 	                            if(username.equals(rs.getString("nome_utente")) && password.equals(rs.getString("password")))
 	                            {
 	                                find_user = true;
 	                                client_id = rs.getInt("id");
-	
 	                            }
-	
 	                        }
 	
 	                        if(find_user)
@@ -306,22 +337,60 @@ class ClientHandler extends Thread
                                     number_sessions++;
                                 }
 
-
 	                            System.out.println("ID: " + client_id);
 	                            pstmt = conn.prepareStatement("UPDATE Utenti SET stato_login = '1' where Utenti.id = " + client_id);
 	                            pstmt.execute();
 	                            pstmt.close(); // rilascio le risorse
                                 is_connect = true;
                                 is_disconnect = false;
-	                            variable_return = "1";
+
+                                System.out.println("\n\nRestituisco 1");
+                                sendMessage("1");
+
+                                System.out.println("\nNumber Sessions: " + Integer.toString(number_sessions));
+                                sendMessage(Integer.toString(number_sessions));
+                                //dos.writeBytes(Integer.toString(number_sessions) + '\n');
+
+                                if(number_sessions != 0) {
+                                    rs = stmt.executeQuery("SELECT * from Sessioni s inner join R_Utente_Sessione rus on rus.id_sessione = s.id where rus.id_utente = " + client_id);
+                                    while (rs.next()) {
+
+                                        //Invio del titolo
+                                        // dos.writeBytes(rs.getString("titolo") + '\n');
+                                        System.out.println("\n\nTitolo: " + rs.getString("titolo"));
+                                        sendMessage("T:" + rs.getString("titolo"));
+
+                                        //Invio del sottotitolo
+                                        //dos.writeBytes(rs.getString("sottotitolo") + '\n');
+
+                                        if (rs.getString("sottotitolo") == null) {
+                                            sendMessage("S:0");
+                                        } else {
+                                            System.out.println("SottoTitolo: " + rs.getString("sottotitolo"));
+                                            sendMessage("S:" + rs.getString("sottotitolo"));
+                                        }
 
 
+                                        //Calcolo ed invio degli utenti online per quella sessione
+                                        number_user_online_session = 0;
+                                        rs_temp = stmt_temp.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE u.stato_login = 1 AND rus.id_sessione = " + rs.getString("id"));
+                                        while (rs_temp.next()) {
+                                            number_user_online_session++;
+                                        }
+                                        //   dos.writeBytes(Integer.toString(number_user_online_session) + '\n');
+                                        System.out.println("Number Online user: " + Integer.toString(number_user_online_session));
+                                        sendMessage("NU:" + Integer.toString(number_user_online_session));
 
+
+                                    }
+
+
+                                }
 	                        }
 	
 	                        else
 	                        {
-	                            variable_return = "-2";
+	                            sendMessage("-2");
                                 is_connect = false;
                                 is_disconnect = true;
 
@@ -330,47 +399,6 @@ class ClientHandler extends Thread
 	                        //pstmt.close(); // rilascio le risorse
 	                        /*stmt.close(); // rilascio le risorse
 	                        conn.close(); // termino la connessione*/
-
-                            conn_temp = DriverManager.getConnection("jdbc:mysql://216.158.239.6/game?" + "user=inventorymaster&password=Rootinventory1!");
-                            stmt_temp = conn_temp.createStatement();
-
-
-	                        System.out.println(variable_return);
-
-
-                            dos.writeBytes("\nCIAOAMICI come va");
-
-	                        dos.writeBytes(variable_return + '\n');
-
-
-                            dos.writeBytes(Integer.toString(number_sessions) + '\n');
-
-	                        if(number_sessions != 0)
-                            {
-                                rs = stmt.executeQuery("SELECT * from Sessioni s inner join R_Utente_Sessione rus on rus.id_sessione = s.id where rus.id_utente = " + client_id);
-                                while (rs.next()) {
-
-                                    //Invio del titolo
-                                    dos.writeBytes(rs.getString("titolo") + '\n');
-
-                                    //Invio del titolo
-                                    dos.writeBytes(rs.getString("sottotitolo") + '\n');
-
-
-                                    //Calcolo ed invio degli utenti online per quella sessione
-                                    number_user_online_session = 0;
-                                    rs_temp = stmt_temp.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE u.stato_login = 1 AND rus.id_sessione = " + rs.getString("id"));
-                                    while (rs_temp.next()) {
-                                        number_user_online_session++;
-                                    }
-                                    dos.writeBytes(Integer.toString(number_user_online_session) + '\n');
-
-
-
-                                }
-
-
-                            }
 	
 	                    }
 	                    catch(ClassNotFoundException e)
@@ -380,9 +408,11 @@ class ClientHandler extends Thread
 	                    catch(SQLException e)
 	                    {
 	                        System.out.println(e);
-	                    }
+	                    } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
 
-                	}
+                    }
                 	else
                 		dos.writeBytes("-1" + '\n');
 
@@ -391,14 +421,15 @@ class ClientHandler extends Thread
                 }
 
 
-
-                //s
+                // RESTITUISCE 1 se ha già fatto il login oppure -1 se ha problemi. Poi restituisce il numero di sessioni per quell'utente e poi ad ogni sessione il numero di utenti online
                 else if (received.equals("get_number_user_online_session"))
                 {
                     if(is_disconnect == false && is_connect == true) {
 
+                        sendMessage("1");
 
-                        dos.writeBytes(Integer.toString(number_sessions) + '\n');
+                        sendMessage("NS:" + Integer.toString(number_sessions));
+                        //dos.writeBytes(Integer.toString(number_sessions) + '\n');
 
                         if (number_sessions != 0) {
                             rs = stmt.executeQuery("SELECT * from Sessioni s inner join R_Utente_Sessione rus on rus.id_sessione = s.id where rus.id_utente = " + client_id);
@@ -410,7 +441,8 @@ class ClientHandler extends Thread
                                 while (rs_temp.next()) {
                                     number_user_online_session++;
                                 }
-                                dos.writeBytes(Integer.toString(number_user_online_session) + '\n');
+
+                                sendMessage("NUO:" + Integer.toString(number_user_online_session));
 
                             }
 
@@ -418,7 +450,8 @@ class ClientHandler extends Thread
                         }
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                 }
 
 
@@ -438,7 +471,8 @@ class ClientHandler extends Thread
                             if(i == Integer.parseInt(id_passed_session))
                             {
                                 is_session_connected = true;
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
 
                                 if(rs.getInt("id_host") != client_id) //Se l'utente non è host allora mi fai vedere la vista dei characters
                                 {
@@ -448,13 +482,20 @@ class ClientHandler extends Thread
                                         number_characters++;
                                     }
 
-                                    dos.writeBytes(Integer.toString(number_characters) + '\n'); //Ritorno il numero di characters per quell'utente
+                                    sendMessage("NC:" + Integer.toString(number_characters));
+                                    //dos.writeBytes(Integer.toString(number_characters) + '\n'); //Restituisco il numero di characters per quell'utente
 
                                     rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.id_utente = " + client_id + " AND p.is_character = 1");
                                     while (rs_temp.next()) {
-                                        dos.writeBytes(rs_temp.getString("nome") + '\n');
-                                        dos.writeBytes(Integer.toString(rs_temp.getInt("hp")) + '\n');
-                                        dos.writeBytes(Integer.toString(rs_temp.getInt("hp_max")) + '\n');
+
+                                        sendMessage("N:" + rs_temp.getString("nome"));
+                                        //dos.writeBytes(rs_temp.getString("nome") + '\n');
+
+                                        sendMessage("HP:" + Integer.toString(rs_temp.getInt("hp")));
+                                        //dos.writeBytes(Integer.toString(rs_temp.getInt("hp")) + '\n');
+
+                                        sendMessage("HPMAX:" + Integer.toString(rs_temp.getInt("hp_max")));
+                                        //dos.writeBytes(Integer.toString(rs_temp.getInt("hp_max")) + '\n');
                                     }
 
 
@@ -475,7 +516,8 @@ class ClientHandler extends Thread
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                 }
 
                 else if (received.equals("disconnect_session"))
@@ -486,11 +528,13 @@ class ClientHandler extends Thread
                         is_host = false;
                         is_character_connected = false;
                         is_session_connected = false;
-                        dos.writeBytes("1" + '\n');
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n');
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                 }
 
 
@@ -500,7 +544,8 @@ class ClientHandler extends Thread
 
                         if(number_sessions != 0)
                         {
-                            dos.writeBytes("1" + '\n');
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
 
                             //Calcolo ed invio degli utenti online per quella sessione
                             number_user_online_session = 0;
@@ -508,24 +553,29 @@ class ClientHandler extends Thread
                             while (rs_temp.next()) {
                                 number_user_online_session++;
                             }
-                            dos.writeBytes(Integer.toString(number_user_online_session) + '\n');
+                            sendMessage("NUOS:" + Integer.toString(number_user_online_session));
+                            //dos.writeBytes(Integer.toString(number_user_online_session) + '\n');
 
                             rs_temp = stmt.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE AND rus.id_sessione = " + rs.getString("id"));
                             while (rs_temp.next()) {
 
-                                dos.writeBytes(rs_temp.getString("nome_utente") + '\n'); // Restituisco il nome dell'oggetto
+                                sendMessage("NOU:" + rs_temp.getString("nome_utente"));
+                                //dos.writeBytes(rs_temp.getString("nome_utente") + '\n'); // Restituisco il nome dell'oggetto
 
                                 if(rs_temp.getInt("stato_login") == 1)
                                 {
-                                    dos.writeBytes("is_logged" + '\n');
+                                    sendMessage("is_logged");
+                                    //dos.writeBytes("is_logged" + '\n');
                                 }
                                 else if(rs_temp.getInt("stato_login") == 0)
                                 {
-                                    dos.writeBytes("is_not_logged" + '\n');
+                                    sendMessage("is_not_logged");
+                                    //dos.writeBytes("is_not_logged" + '\n');
                                 }
 
                                 image = rs_temp.getBlob("imm_profilo");
                                 byte barr[] = image.getBytes(1,(int)image.length());
+                                sleep(150);
                                 dos.write(barr);
 
                             }
@@ -533,7 +583,8 @@ class ClientHandler extends Thread
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                 }
 
 
@@ -543,17 +594,22 @@ class ClientHandler extends Thread
 
                         if(number_sessions != 0)
                         {
-                            dos.writeBytes("1" + '\n');
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
 
                             rs = stmt.executeQuery("SELECT * from Sessioni s inner join R_Utente_Sessione rus on rus.id_sessione = s.id where rus.id_utente = " + client_id);
                             while (rs.next()) {
 
                                 //Invio del titolo
-                                dos.writeBytes(rs.getString("titolo") + '\n');
+                                sendMessage("T:" + rs.getString("titolo"));
+                                //dos.writeBytes(rs.getString("titolo") + '\n');
 
-                                //Invio del titolo
-                                dos.writeBytes(rs.getString("sottotitolo") + '\n');
-
+                                if (rs.getString("sottotitolo") == null) {
+                                    sendMessage("S:0");
+                                } else {
+                                    System.out.println("SottoTitolo: " + rs.getString("sottotitolo"));
+                                    sendMessage("S:" + rs.getString("sottotitolo"));
+                                }
 
                                 //Calcolo ed invio degli utenti online per quella sessione
                                 number_user_online_session = 0;
@@ -561,22 +617,18 @@ class ClientHandler extends Thread
                                 while (rs_temp.next()) {
                                     number_user_online_session++;
                                 }
-                                dos.writeBytes(Integer.toString(number_user_online_session) + '\n');
-
-
-
+                                sendMessage("NUO:" + Integer.toString(number_user_online_session));
+                                //dos.writeBytes(Integer.toString(number_user_online_session) + '\n');
+                                
                             }
-
-
                         }
-
-
-
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                 }
 
+                //SONO ARRIVATO QUI
 
 
                 else if (received.equals("connect_character"))
@@ -4522,24 +4574,26 @@ class ClientHandler extends Thread
                 {  
                 	//CHIUSURA DELLA CONNESSIONE
                 	
-                	if(is_disconnect == true)
-                	{
+
                 		is_closed = true;
 	                    System.out.println("Client " + this.s + " want to close the connection..."); 
 	                    System.out.println("Closing this connection.");
-	                    dos.writeBytes("1" + '\n');
-	                    this.s.close(); 
+	                    sendMessage("end");
+
 	                    System.out.println("Connection closed");
 	
-	
+
+
 	                    pstmt.close(); // rilascio le risorse
 	                    stmt.close(); // rilascio le risorse
 	                    conn.close(); // termino la connessione
-                	}
-                	else
-                	{
-                		dos.writeBytes("-4" + '\n');
-                	}
+                        conn_temp.close();
+                        stmt_temp.close();
+
+                        this.dis.close();
+                        this.dos.close();
+                        this.s.close();
+
                     break; 
                 }
 
@@ -4566,6 +4620,15 @@ class ClientHandler extends Thread
                         dos.writeUTF("Invalid input"); 
                         break; 
                 } */
+
+                /*else if(received.equals("close_connection"))
+                {
+
+                    System.out.println("\nConnection Closed\n");
+                    is_closed = true;
+                }
+
+                 */
 
 
                 else if(received.equals("show_users_online"))
@@ -4645,16 +4708,33 @@ class ClientHandler extends Thread
                 e.printStackTrace(); 
             } catch (SQLException e) {
                 e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         } 
           
         try
         { 
-            // closing resources 
+            // closing resources
+            System.out.println("\nClosing Resources\n");
             this.dis.close(); 
             this.dos.close();
+            if(pstmt != null)
+                pstmt.close();
+
+            if(stmt != null)
+                stmt.close();
+
+            if(stmt_temp != null)
+                stmt_temp.close();
+
+            if(conn_temp != null)
+                conn_temp.close();
+
+            if(conn != null)
+                conn.close();
               
-        }catch(IOException e){ 
+        }catch(IOException | SQLException e){
             e.printStackTrace(); 
         } 
     } 
