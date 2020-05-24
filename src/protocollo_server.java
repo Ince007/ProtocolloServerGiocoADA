@@ -628,15 +628,6 @@ class ClientHandler extends Thread
                         //dos.writeBytes("-1" + '\n');
                 }
 
-                //SONO ARRIVATO QUI
-
-                //CIAO
-
-                else if(received.equals("ciao"))
-                {
-
-                }
-
 
                 else if (received.equals("connect_character"))
                 {
@@ -654,7 +645,8 @@ class ClientHandler extends Thread
                             if(i == Integer.parseInt(id_passed_character))
                             {
                                 is_character_connected = true;
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             i++;
@@ -663,7 +655,8 @@ class ClientHandler extends Thread
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                 }
 
 
