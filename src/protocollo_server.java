@@ -666,11 +666,13 @@ class ClientHandler extends Thread
                         character_id = 0;
                         is_character_connected = false;
 
-                        dos.writeBytes("1" + '\n');
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n');
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                 }
 
 
@@ -678,7 +680,9 @@ class ClientHandler extends Thread
                 {
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
 
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         number_items_b = 0;
 
@@ -689,41 +693,57 @@ class ClientHandler extends Thread
 
                         }
 
-                        dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
+                        sendMessage("NOB:" + Integer.toString(number_items_b));
+                        //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
 
                         image = null;
 
                         rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + character_id);
                         while (rs.next()) {
 
-                            dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
-                            dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
+                            sendMessage("N:" + rs.getString("nome"));
+                            //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
+
+                            sendMessage("D:" + rs.getString("descrizione"));
+                            //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
 
                             image = rs.getBlob("foto");
                             byte barr[] = image.getBytes(1,(int)image.length());
+                            sleep(150);
                             dos.write(barr);
 
                             //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
-                            dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
 
-                            dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
+                            sendMessage("V:" + rs.getString("valore"));
+                            //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+                            sendMessage("Q:" + rs.getString("quantita"));
+                            //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
                         }
 
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                 }
 
+
+                //SONO QUi
                 else if (received.equals("get_user_backpack")) // DA CAMBIARE
                 {
+                    filter_item = dis.readLine(); //Mi prendo l'id dell'utente
+
+                    send_id = Integer.parseInt(filter_item);
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
 
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
-                        filter_item = dis.readLine(); //Mi prendo l'id dell'utente
 
-                        send_id = Integer.parseInt(filter_item);
+
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
 
                         number_items_b = 0;
 
@@ -734,39 +754,52 @@ class ClientHandler extends Thread
 
                         }
 
-                        dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
+                        sendMessage("NOB:" + Integer.toString(number_items_b));
+                        //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
 
                         image = null;
 
                         rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + send_id);
                         while (rs.next()) {
 
-                            dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
-                            dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
+                            sendMessage("N:" + rs.getString("nome"));
+                            //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
+
+                            sendMessage("D:" + rs.getString("descrizione"));
+                            //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
 
                             image = rs.getBlob("foto");
                             byte barr[] = image.getBytes(1,(int)image.length());
+                            sleep(150);
                             dos.write(barr);
 
                             //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
-                            dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
 
-                            dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
+                            sendMessage("V:" + rs.getString("valore"));
+                            //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+                            sendMessage("Q:" + rs.getString("quantita"));
+                            //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
                         }
 
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                 }
 
                 else if (received.equals("get_character_backpack"))
                 {
+                    filter_item = dis.readLine(); //Mi prendo il nome del character
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
 
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
-                        filter_item = dis.readLine(); //Mi prendo il nome del character
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+
 
                         find_character = false;
 
@@ -789,32 +822,42 @@ class ClientHandler extends Thread
 
                             }
 
-                            dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
+                            sendMessage("NOB:" + Integer.toString(number_items_b));
+                            //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
 
                             image = null;
 
                             rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + send_id);
                             while (rs.next()) {
 
-                                dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
-                                dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
+                                sendMessage("N:" + rs.getString("nome"));
+                                //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
+
+                                sendMessage("D:" + rs.getString("descrizione"));
+                                //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
 
                                 image = rs.getBlob("foto");
-                                byte barr[] = image.getBytes(1, (int) image.length());
+                                byte barr[] = image.getBytes(1,(int)image.length());
+                                sleep(150);
                                 dos.write(barr);
 
                                 //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
-                                dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
 
-                                dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
+                                sendMessage("V:" + rs.getString("valore"));
+                                //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+                                sendMessage("Q:" + rs.getString("quantita"));
+                                //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
                             }
                         }
                         else
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                 }
 
 
@@ -822,7 +865,9 @@ class ClientHandler extends Thread
                 {
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
 
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         number_items_b = 0;
 
@@ -833,7 +878,8 @@ class ClientHandler extends Thread
 
                         }
 
-                        dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
+                        sendMessage("NOB:" + Integer.toString(number_items_b));
+                        //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
 
                         image = null;
 
@@ -842,120 +888,135 @@ class ClientHandler extends Thread
 
                             if(rs.getInt("is_head_eq") == 1)
                             {
-                                dos.writeBytes("head" + '\n');
+                                sendMessage("head");
+                                //dos.writeBytes("head" + '\n');
 
                             }
                             else if (rs.getInt("is_torso_eq") == 1)
                             {
-                                dos.writeBytes("torso" + '\n');
-
+                                //dos.writeBytes("torso" + '\n');
+                                sendMessage("torso");
                             }
 
                             else if (rs.getInt("is_left_arm_eq") == 1)
                             {
-                                dos.writeBytes("left_arm" + '\n');
-
+                                //dos.writeBytes("left_arm" + '\n');
+                                sendMessage("left_arm");
                             }
 
                             else if (rs.getInt("is_right_arm_eq") == 1)
                             {
-                                dos.writeBytes("right_arm" + '\n');
-
+                                //dos.writeBytes("right_arm" + '\n');
+                                sendMessage("right_arm");
                             }
 
                             else if (rs.getInt("is_left_leg_eq") == 1)
                             {
-                                dos.writeBytes("left_leg" + '\n');
-
+                                //dos.writeBytes("left_leg" + '\n');
+                                sendMessage("left_leg");
                             }
 
                             else if (rs.getInt("is_right_leg_eq") == 1)
                             {
-                                dos.writeBytes("right_leg" + '\n');
-
+                                //dos.writeBytes("right_leg" + '\n');
+                                sendMessage("right_leg");
                             }
 
                             else if (rs.getInt("is_first_weapon_eq") == 1)
                             {
-                                dos.writeBytes("first_weapon" + '\n');
-
+                                //dos.writeBytes("first_weapon" + '\n');
+                                sendMessage("first_weapon");
                             }
 
                             else if (rs.getInt("is_secondary_weapon_eq") == 1)
                             {
-                                dos.writeBytes("secondary_weapon" + '\n');
-
+                                //dos.writeBytes("secondary_weapon" + '\n');
+                                sendMessage("secondary_weapon");
                             }
 
                             else if (rs.getInt("is_gloves_eq") == 1)
                             {
-                                dos.writeBytes("gloves" + '\n');
-
+                                //dos.writeBytes("gloves" + '\n');
+                                sendMessage("gloves");
                             }
 
                             else if (rs.getInt("is_left_gloves_eq") == 1)
                             {
-                                dos.writeBytes("left_gloves" + '\n');
-
+                                //dos.writeBytes("left_gloves" + '\n');
+                                sendMessage("left_gloves");
                             }
 
                             else if (rs.getInt("is_right_gloves_eq") == 1)
                             {
-                                dos.writeBytes("right_gloves" + '\n');
-
+                                //dos.writeBytes("right_gloves" + '\n');
+                                sendMessage("right_gloves");
                             }
 
                             else if (rs.getInt("is_shoes_eq") == 1)
                             {
-                                dos.writeBytes("shoes" + '\n');
-
+                                //dos.writeBytes("shoes" + '\n');
+                                sendMessage("shoes");
                             }
 
                             else if (rs.getInt("is_greaves_eq") == 1)
                             {
-                                dos.writeBytes("greaves" + '\n');
-
+                                //dos.writeBytes("greaves" + '\n');
+                                sendMessage("greaves");
                             }
 
                             else if (rs.getInt("is_left_greaves_eq") == 1)
                             {
-                                dos.writeBytes("left_greaves" + '\n');
-
+                                //dos.writeBytes("left_greaves" + '\n');
+                                sendMessage("left_greaves");
                             }
 
                             else if (rs.getInt("is_right_greaves_eq") == 1)
                             {
-                                dos.writeBytes("right_greaves" + '\n');
-
+                                //dos.writeBytes("right_greaves" + '\n');
+                                sendMessage("right_greaves");
                             }
 
-                            dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
-                            dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
+
+                            sendMessage("N:" + rs.getString("nome"));
+                            //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
+
+                            sendMessage("D:" + rs.getString("descrizione"));
+                            //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
 
                             image = rs.getBlob("foto");
                             byte barr[] = image.getBytes(1,(int)image.length());
+                            sleep(150);
                             dos.write(barr);
 
                             //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
-                            dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+                            sendMessage("V:" + rs.getString("valore"));
+                            //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+
+
 
                         }
 
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                 }
 
                 else if (received.equals("get_equipment_from_category"))
                 {
+                    c_name = dis.readLine();
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
 
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         number_items_b = 0;
 
-                        c_name = dis.readLine();
+
 
 
                         if(c_name.equals("head"))
@@ -1044,7 +1105,9 @@ class ClientHandler extends Thread
 
                         }
 
-                        dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
+
+                        sendMessage("NOB:" + Integer.toString(number_items_b));
+                        //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
 
                         image = null;
 
@@ -1053,24 +1116,35 @@ class ClientHandler extends Thread
 
 
 
-                            dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
-                            dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
+                            sendMessage("N:" + rs.getString("nome"));
+                            //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
+
+                            sendMessage("D:" + rs.getString("descrizione"));
+                            //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
 
                             image = rs.getBlob("foto");
                             byte barr[] = image.getBytes(1,(int)image.length());
+                            sleep(150);
                             dos.write(barr);
 
                             //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
-                            dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+                            sendMessage("V:" + rs.getString("valore"));
+                            //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
 
                         }
 
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                 }
 
+
+
+
+                //SONO ARRIVATO QUI
 
                 else if (received.equals("get_filtered_backpack"))
                 {
@@ -1089,22 +1163,32 @@ class ClientHandler extends Thread
 
                         }
 
-                        dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
+                        sendMessage("NOB:" + Integer.toString(number_items_b));
+                        //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
 
                         image = null;
 
                         rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id INNER JOIN Categorie c ON c.id = o.id_categoria WHERE rpo.id_personaggio = " + character_id + " AND c.nome = '" + filter_item + "'");
                         while (rs.next()) {
 
-                            dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
-                            dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
+                            sendMessage("N:" + rs.getString("nome"));
+                            //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
+
+                            sendMessage("D:" + rs.getString("descrizione"));
+                            //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
 
                             image = rs.getBlob("foto");
                             byte barr[] = image.getBytes(1,(int)image.length());
+                            sleep(150);
                             dos.write(barr);
 
                             //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
-                            dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+                            sendMessage("V:" + rs.getString("valore"));
+                            //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+                            sendMessage("Q:" + rs.getString("quantita"));
+                            //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
 
 
                         }
