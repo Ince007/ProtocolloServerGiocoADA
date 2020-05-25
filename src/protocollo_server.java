@@ -729,7 +729,6 @@ class ClientHandler extends Thread
                 }
 
 
-                //SONO QUi
                 else if (received.equals("get_user_backpack")) // DA CAMBIARE
                 {
                     filter_item = dis.readLine(); //Mi prendo l'id dell'utente
@@ -737,8 +736,6 @@ class ClientHandler extends Thread
                     send_id = Integer.parseInt(filter_item);
 
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
-
-
 
 
                         sendMessage("1");
@@ -1142,15 +1139,12 @@ class ClientHandler extends Thread
                 }
 
 
-
-
-                //SONO ARRIVATO QUI
-
                 else if (received.equals("get_filtered_backpack"))
                 {
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
 
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         number_items_b = 0;
 
@@ -1196,26 +1190,31 @@ class ClientHandler extends Thread
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                 }
 
 
                 else if (received.equals("create_category"))
                 {
+
+                    c_name = dis.readLine(); //Mi prendo il nome della categoria
+                    c_desc = dis.readLine(); //Mi prendo la descrizione della categoria
+                    c_tipo_potenza = dis.readLine();
+                    c_numero_slot = Integer.parseInt(dis.readLine());
+
+                    //Mi prendo il numero di possibili equipaggiamenti per quella categoria
+                    c_number = Integer.parseInt(dis.readLine());
+
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
 
 
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         find_category = false;
 
-                        c_name = dis.readLine(); //Mi prendo il nome della categoria
-                        c_desc = dis.readLine(); //Mi prendo la descrizione della categoria
-                        c_tipo_potenza = dis.readLine();
-                        c_numero_slot = Integer.parseInt(dis.readLine());
-
-                        //Mi prendo il numero di possibili equipaggiamenti per quella categoria
-                        c_number = Integer.parseInt(dis.readLine());
 
 
                         rs = stmt.executeQuery("SELECT * from Categorie c WHERE c.id_sessione = " + session_id);
@@ -1228,7 +1227,8 @@ class ClientHandler extends Thread
 
                         if(find_category)
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                         else
@@ -1250,7 +1250,8 @@ class ClientHandler extends Thread
 
                             }
 
-                            dos.writeBytes("1" + '\n'); // Restituisco che è andato tutto a buon fine
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n'); // Restituisco che è andato tutto a buon fine
 
                             for(i = 0; i < c_number; i++)
                             {
@@ -1358,12 +1359,14 @@ class ClientHandler extends Thread
 
                             }
 
-                            dos.writeBytes("1" + '\n');
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
                         }
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                 }
 
 
@@ -1372,7 +1375,8 @@ class ClientHandler extends Thread
                     if(is_disconnect == false && is_connect == true && is_session_connected == true) {
 
 
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         number_categories = 0;
 
@@ -1383,16 +1387,24 @@ class ClientHandler extends Thread
 
                         }
 
-                        dos.writeBytes(Integer.toString(number_categories) + '\n'); //Ritorno il numero di characters per quell'utente
+                        sendMessage("NC:" + Integer.toString(number_categories));
+                        //dos.writeBytes(Integer.toString(number_categories) + '\n'); //Ritorno il numero di characters per quell'utente
 
 
                         image = null;
 
                         rs = stmt.executeQuery("SELECT * from Categorie c WHERE c.id_sessione = " + session_id);
                         while (rs.next()) {
-                            dos.writeBytes(rs.getString("nome") + '\n');
-                            dos.writeBytes(rs.getString("descrizione") + '\n');
-                            dos.writeBytes(rs.getString("tipo_potenza") + '\n');
+
+                            sendMessage("N:" + rs.getString("nome"));
+                            //dos.writeBytes(rs.getString("nome") + '\n');
+
+                            sendMessage("D:" + rs.getString("descrizione"));
+                            //dos.writeBytes(rs.getString("descrizione") + '\n');
+
+
+                            sendMessage("TP:" + rs.getString("tipo_potenza"));
+                            //dos.writeBytes(rs.getString("tipo_potenza") + '\n');
 
                             image = rs.getBlob("foto");
                             byte barr[] = image.getBytes(1,(int)image.length());
@@ -1404,7 +1416,9 @@ class ClientHandler extends Thread
                             while (rs_temp.next()) {
                                 number_object_categories++;
                             }
-                            dos.writeBytes(Integer.toString(number_object_categories) + '\n'); //Ritorno il numero di oggetti per categoria
+
+                            sendMessage("NC:" + Integer.toString(number_object_categories));
+                            //dos.writeBytes(Integer.toString(number_object_categories) + '\n'); //Restituisco il numero di oggetti per categoria
 
                         }
 
@@ -1412,17 +1426,18 @@ class ClientHandler extends Thread
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                 }
 
 
-                //DA aggiornare
                 else if (received.equals("show_category_all"))
                 {
                     if(is_disconnect == false && is_connect == true && is_session_connected == true) {
 
 
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         number_categories = 0;
 
@@ -1433,16 +1448,23 @@ class ClientHandler extends Thread
 
                         }
 
-                        dos.writeBytes(Integer.toString(number_categories) + '\n'); //Ritorno il numero di characters per quell'utente
+                        sendMessage("NC:" + Integer.toString(number_categories));
+                        //dos.writeBytes(Integer.toString(number_categories) + '\n'); //Ritorno il numero di characters per quell'utente
 
 
                         image = null;
 
                         rs = stmt.executeQuery("SELECT * from Categorie c WHERE c.id_sessione = " + session_id);
                         while (rs.next()) {
-                            dos.writeBytes(rs.getString("nome") + '\n');
-                            dos.writeBytes(rs.getString("descrizione") + '\n');
-                            dos.writeBytes(rs.getString("tipo_potenza") + '\n');
+                            sendMessage("N:" + rs.getString("nome"));
+                            //dos.writeBytes(rs.getString("nome") + '\n');
+
+                            sendMessage("D:" + rs.getString("descrizione"));
+                            //dos.writeBytes(rs.getString("descrizione") + '\n');
+
+
+                            sendMessage("TP:" + rs.getString("tipo_potenza"));
+                            //dos.writeBytes(rs.getString("tipo_potenza") + '\n');
 
                             image = rs.getBlob("foto");
                             byte barr[] = image.getBytes(1,(int)image.length());
@@ -1454,7 +1476,8 @@ class ClientHandler extends Thread
                             while (rs_temp.next()) {
                                 number_object_categories++;
                             }
-                            dos.writeBytes(Integer.toString(number_object_categories) + '\n'); //Ritorno il numero di oggetti per categoria
+                            sendMessage("NC:" + Integer.toString(number_object_categories));
+                            //dos.writeBytes(Integer.toString(number_object_categories) + '\n'); //Restituisco il numero di oggetti per categoria
 
 
 
@@ -1464,14 +1487,17 @@ class ClientHandler extends Thread
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                 }
 
                 else if (received.equals("show_category_objects"))
                 {
                     if(is_disconnect == false && is_connect == true && is_session_connected == true) {
 
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         c_name = dis.readLine();
 
@@ -1486,7 +1512,8 @@ class ClientHandler extends Thread
 
                         if(find_category == false)
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
                         else
                         {
@@ -1496,31 +1523,40 @@ class ClientHandler extends Thread
                             }
 
 
-                            dos.writeBytes(Integer.toString(number_object_categories) + '\n'); // Restituisco il numero di oggetti del backpack
+                            sendMessage("NOB:" + Integer.toString(number_object_categories));
+                            //dos.writeBytes(Integer.toString(number_object_categories) + '\n'); // Restituisco il numero di oggetti del backpack
 
                             image = null;
 
                             rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN Categorie c ON o.id_categoria = c.id  WHERE c.id = " + category_id);
                             while (rs.next()) {
 
-                                dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
-                                dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
+                                sendMessage("N:" + rs.getString("nome"));
+                                //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
+
+                                sendMessage("D:" + rs.getString("descrizione"));
+                                //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
 
                                 image = rs.getBlob("foto");
                                 byte barr[] = image.getBytes(1,(int)image.length());
+                                sleep(150);
                                 dos.write(barr);
 
                                 //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
-                                dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
 
-                                dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
+                                sendMessage("V:" + rs.getString("valore"));
+                                //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+                                sendMessage("Q:" + rs.getString("quantita"));
+                                //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
                             }
 
                         }
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                 }
 
 
@@ -1528,7 +1564,8 @@ class ClientHandler extends Thread
                 {
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == false) {
 
-                        dos.writeBytes("1" + '\n');
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n');
 
                         is_host = false;
                         rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.id_utente = " + client_id + " AND p.is_character = 1");
@@ -1536,13 +1573,20 @@ class ClientHandler extends Thread
                             number_characters++;
                         }
 
-                        dos.writeBytes(Integer.toString(number_characters) + '\n'); //Ritorno il numero di characters per quell'utente
+                        sendMessage("NC:" + Integer.toString(number_characters));
+                        //dos.writeBytes(Integer.toString(number_characters) + '\n'); //Ritorno il numero di characters per quell'utente
 
                         rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.id_utente = " + client_id + " AND p.is_character = 1");
                         while (rs_temp.next()) {
-                            dos.writeBytes(rs_temp.getString("nome") + '\n');
-                            dos.writeBytes(Integer.toString(rs_temp.getInt("hp")) + '\n');
-                            dos.writeBytes(Integer.toString(rs_temp.getInt("hp_max")) + '\n');
+
+                            sendMessage("N:" + rs_temp.getString("nome"));
+                            //dos.writeBytes(rs_temp.getString("nome") + '\n');
+
+                            sendMessage("HP:" + Integer.toString(rs_temp.getInt("hp")));
+                            //dos.writeBytes(Integer.toString(rs_temp.getInt("hp")) + '\n');
+
+                            sendMessage("HPMAX:" + Integer.toString(rs_temp.getInt("hp_max")));
+                            //dos.writeBytes(Integer.toString(rs_temp.getInt("hp_max")) + '\n');
                         }
 
 
@@ -1551,20 +1595,43 @@ class ClientHandler extends Thread
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                 }
 
                 //TRADING
                 else if (received.equals("trading_with"))
                 {
+
+                    //Mi prendo i dati
+                    trade_name_c = dis.readLine();
+
+                    number_item_trade_1 = Integer.parseInt(dis.readLine());
+
+                    number_item_trade_2 = Integer.parseInt(dis.readLine());
+
+                    for(i = 0; i < number_item_trade_1; i++)
+                    {
+                        trade_q_1[i] = Integer.parseInt(dis.readLine());
+                        trade_o_1[i] = dis.readLine();
+                    }
+
+                    for(i = 0; i < number_item_trade_2; i++)
+                    {
+                        trade_q_2[i] = Integer.parseInt(dis.readLine());
+                        trade_o_2[i] = dis.readLine();
+                    }
+
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
 
                         is_trading_enabled1 = false;
                         is_trading_enabled2 = false;
 
-                        dos.writeBytes("1" + '\n');
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n');
 
-                        trade_name_c = dis.readLine();
+
 
                         find_trade = false;
 
@@ -1599,23 +1666,10 @@ class ClientHandler extends Thread
 
                         if(find_trade && is_trading_enabled2 && is_trading_enabled1)
                         {
-                            dos.writeBytes("1" + '\n');
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
 
-                            number_item_trade_1 = Integer.parseInt(dis.readLine());
 
-                            number_item_trade_2 = Integer.parseInt(dis.readLine());
-
-                            for(i = 0; i < number_item_trade_1; i++)
-                            {
-                                trade_q_1[i] = Integer.parseInt(dis.readLine());
-                                trade_o_1[i] = dis.readLine();
-                            }
-
-                            for(i = 0; i < number_item_trade_2; i++)
-                            {
-                                trade_q_2[i] = Integer.parseInt(dis.readLine());
-                                trade_o_2[i] = dis.readLine();
-                            }
 
 
                             is_o1_ok = true;
@@ -1786,14 +1840,16 @@ class ClientHandler extends Thread
                                         }
 
 
-                                        dos.writeBytes("1" + '\n');
+                                        sendMessage("1");
+                                        //dos.writeBytes("1" + '\n');
 
 
                                     }
                                 }
                                 else
                                 {
-                                    dos.writeBytes("-4" + '\n');
+                                    sendMessage("-4");
+                                    //dos.writeBytes("-4" + '\n');
                                 }
 
 
@@ -1803,34 +1859,58 @@ class ClientHandler extends Thread
 
                             else
                             {
-                                dos.writeBytes("-3" + '\n');
+                                sendMessage("-3");
+                                //dos.writeBytes("-3" + '\n');
                             }
 
                         }
                         else
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
                 }
 
 
                 //TRADING FROM
                 else if (received.equals("trading_from"))
                 {
+                    //Mi prendo i dati e poi li elaboro
+                    trade_c_name1 = dis.readLine();
+                    trade_c_name2 = dis.readLine();
+
+                    number_item_trade_1 = Integer.parseInt(dis.readLine());
+
+                    number_item_trade_2 = Integer.parseInt(dis.readLine());
+
+                    for(i = 0; i < number_item_trade_1; i++)
+                    {
+                        trade_q_1[i] = Integer.parseInt(dis.readLine());
+                        trade_o_1[i] = dis.readLine();
+                    }
+
+                    for(i = 0; i < number_item_trade_2; i++)
+                    {
+                        trade_q_2[i] = Integer.parseInt(dis.readLine());
+                        trade_o_2[i] = dis.readLine();
+                    }
+
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
 
                         is_trading_enabled1 = false;
                         is_trading_enabled2 = false;
 
-                        dos.writeBytes("1" + '\n');
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n');
 
-                        trade_c_name1 = dis.readLine();
-                        trade_c_name2 = dis.readLine();
+
 
                         find_trade1 = false;
                         find_trade2 = false;
@@ -1869,23 +1949,8 @@ class ClientHandler extends Thread
 
                         if(find_trade1 && find_trade2 && is_trading_enabled2 && is_trading_enabled1)
                         {
-                            dos.writeBytes("1" + '\n');
-
-                            number_item_trade_1 = Integer.parseInt(dis.readLine());
-
-                            number_item_trade_2 = Integer.parseInt(dis.readLine());
-
-                            for(i = 0; i < number_item_trade_1; i++)
-                            {
-                                trade_q_1[i] = Integer.parseInt(dis.readLine());
-                                trade_o_1[i] = dis.readLine();
-                            }
-
-                            for(i = 0; i < number_item_trade_2; i++)
-                            {
-                                trade_q_2[i] = Integer.parseInt(dis.readLine());
-                                trade_o_2[i] = dis.readLine();
-                            }
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
 
 
                             is_o1_ok = true;
@@ -2058,14 +2123,16 @@ class ClientHandler extends Thread
                                         }
 
 
-                                        dos.writeBytes("1" + '\n');
+                                        sendMessage("1");
+                                        //dos.writeBytes("1" + '\n');
 
 
                                     }
                                 }
                                 else
                                 {
-                                    dos.writeBytes("-4" + '\n');
+                                    sendMessage("-4");
+                                    //dos.writeBytes("-4" + '\n');
                                 }
 
 
@@ -2075,30 +2142,36 @@ class ClientHandler extends Thread
 
                             else
                             {
-                                dos.writeBytes("-3" + '\n');
+                                sendMessage("-3");
+                                //dos.writeBytes("-3" + '\n');
                             }
 
                         }
                         else
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
                 }
 
                 //Get quantity of object per character
                 //restituisce 1 perchè è entrato poi 1 se ha trovato l'oggetto sul character e lo restituisce poi -2 se non ha trovato l'oggetto e -1 se c'è errore
                 else if (received.equals("get_quantity_object"))
                 {
+                    trade_name_c = dis.readLine();
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
 
-                        dos.writeBytes("1" + '\n');
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n');
 
-                        trade_name_c = dis.readLine();
+
 
                         find_trade = false;
                         rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + character_id + " AND o.nome = '" + trade_name_c + "'");
@@ -2109,18 +2182,22 @@ class ClientHandler extends Thread
 
                         if(find_trade)
                         {
-                            dos.writeBytes("1" + '\n');
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
 
-                            dos.writeBytes(Integer.toString(quantity_items_1[0]));
+                            sendMessage("QI:" + Integer.toString(quantity_items_1[0]));
+                            //dos.writeBytes(Integer.toString(quantity_items_1[0]));
                         }
                         else
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
                 }
 
 
@@ -2129,12 +2206,15 @@ class ClientHandler extends Thread
                 //restituisce 1 perchè è entrato poi 1 se ha trovato l'oggetto sul character e lo restituisce poi -2 se non ha trovato l'oggetto e -1 se c'è errore
                 else if (received.equals("get_quantity_object_from_character"))
                 {
+                    c_name = dis.readLine();
+                    trade_name_c = dis.readLine();
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true) {
 
-                        dos.writeBytes("1" + '\n');
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n');
 
-                        c_name = dis.readLine();
-                        trade_name_c = dis.readLine();
+
 
 
                         find_trade = false;
@@ -2146,18 +2226,22 @@ class ClientHandler extends Thread
 
                         if(find_trade)
                         {
-                            dos.writeBytes("1" + '\n');
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
 
-                            dos.writeBytes(Integer.toString(quantity_items_1[0]));
+                            sendMessage("QI:" + Integer.toString(quantity_items_1[0]));
+                            //dos.writeBytes(Integer.toString(quantity_items_1[0]));
                         }
                         else
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
                 }
 
 
@@ -2165,31 +2249,35 @@ class ClientHandler extends Thread
                 //Creating new character
                 else if (received.equals("add_character"))
                 {
+
+                    character_nome = dis.readLine();
+                    character_hp = Integer.parseInt(dis.readLine());
+                    character_biografia = dis.readLine();
+                    character_razza = dis.readLine();
+                    character_eta = Integer.parseInt(dis.readLine());
+                    character_peso = Float.parseFloat(dis.readLine());
+                    character_altezza = Float.parseFloat(dis.readLine());
+                    character_hp_max = Integer.parseInt(dis.readLine());
+
+                    character_capelli = dis.readLine();
+                    character_occhi = dis.readLine();
+                    character_mark = dis.readLine();
+                    character_cicatrici = dis.readLine();
+                    character_tatuaggi = dis.readLine();
+                    character_luogo_nascita = dis.readLine();
+                    character_sesso = dis.readLine();
+                    character_colore_pelle = dis.readLine();
+                    character_anno_nascita = Integer.parseInt(dis.readLine());
+
+
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true) {
 
 
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         find_category = false;
-
-                        character_nome = dis.readLine();
-                        character_hp = Integer.parseInt(dis.readLine());
-                        character_biografia = dis.readLine();
-                        character_razza = dis.readLine();
-                        character_eta = Integer.parseInt(dis.readLine());
-                        character_peso = Float.parseFloat(dis.readLine());
-                        character_altezza = Float.parseFloat(dis.readLine());
-                        character_hp_max = Integer.parseInt(dis.readLine());
-
-                        character_capelli = dis.readLine();
-                        character_occhi = dis.readLine();
-                        character_mark = dis.readLine();
-                        character_cicatrici = dis.readLine();
-                        character_tatuaggi = dis.readLine();
-                        character_luogo_nascita = dis.readLine();
-                        character_sesso = dis.readLine();
-                        character_colore_pelle = dis.readLine();
-                        character_anno_nascita = Integer.parseInt(dis.readLine());
 
 
 
@@ -2203,7 +2291,8 @@ class ClientHandler extends Thread
 
                         if(find_category)
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                         else
@@ -2238,43 +2327,49 @@ class ClientHandler extends Thread
                             pstmt.execute();
                             pstmt.close(); // rilascio le risorse
 
-                            dos.writeBytes("1" + '\n');
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
                         }
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
                 }
 
                 //Creating new personaggio
                 else if (received.equals("add_personaggio"))
                 {
+
+                    character_nome = dis.readLine();
+                    character_hp = Integer.parseInt(dis.readLine());
+                    character_biografia = dis.readLine();
+                    character_razza = dis.readLine();
+                    character_eta = Integer.parseInt(dis.readLine());
+                    character_peso = Float.parseFloat(dis.readLine());
+                    character_altezza = Float.parseFloat(dis.readLine());
+                    character_hp_max = Integer.parseInt(dis.readLine());
+                    what_character = dis.readLine();
+
+                    character_capelli = dis.readLine();
+                    character_occhi = dis.readLine();
+                    character_mark = dis.readLine();
+                    character_cicatrici = dis.readLine();
+                    character_tatuaggi = dis.readLine();
+                    character_luogo_nascita = dis.readLine();
+                    character_sesso = dis.readLine();
+                    character_colore_pelle = dis.readLine();
+                    character_anno_nascita = Integer.parseInt(dis.readLine());
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
 
 
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         find_category = false;
 
-                        character_nome = dis.readLine();
-                        character_hp = Integer.parseInt(dis.readLine());
-                        character_biografia = dis.readLine();
-                        character_razza = dis.readLine();
-                        character_eta = Integer.parseInt(dis.readLine());
-                        character_peso = Float.parseFloat(dis.readLine());
-                        character_altezza = Float.parseFloat(dis.readLine());
-                        character_hp_max = Integer.parseInt(dis.readLine());
-                        what_character = dis.readLine();
 
-                        character_capelli = dis.readLine();
-                        character_occhi = dis.readLine();
-                        character_mark = dis.readLine();
-                        character_cicatrici = dis.readLine();
-                        character_tatuaggi = dis.readLine();
-                        character_luogo_nascita = dis.readLine();
-                        character_sesso = dis.readLine();
-                        character_colore_pelle = dis.readLine();
-                        character_anno_nascita = Integer.parseInt(dis.readLine());
 
                         rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id);
                         while (rs.next()) {
@@ -2286,7 +2381,8 @@ class ClientHandler extends Thread
 
                         if(find_category)
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                         else
@@ -2363,24 +2459,29 @@ class ClientHandler extends Thread
                             pstmt.execute();
                             pstmt.close(); // rilascio le risorse
 
-                            dos.writeBytes(variable_return + '\n');
+                            sendMessage(variable_return);
+                            //dos.writeBytes(variable_return + '\n');
                         }
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
                 }
 
 
                 //Creating session
                 else if (received.equals("create_session"))
                 {
+                    s_titolo = dis.readLine();
+                    s_sottotitolo = dis.readLine();
+
                     if(is_disconnect == false && is_connect == true)
                     {
-                        dos.writeBytes("1" + '\n');
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n');
 
-                        s_titolo = dis.readLine();
-                        s_sottotitolo = dis.readLine();
+
 
                         find_trade = false;
                         rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.titolo = '" + s_titolo + "'");
@@ -2417,15 +2518,18 @@ class ClientHandler extends Thread
                             pstmt.execute();
                             pstmt.close(); // rilascio le risorse
 
-                            dos.writeBytes("1" + '\n');
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
 
-                            dos.writeBytes(Integer.toString(s_codice_invito) + '\n');
+                            sendMessage(Integer.toString(s_codice_invito));
+                            //dos.writeBytes(Integer.toString(s_codice_invito) + '\n');
 
                         }
 
                         else
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
 
@@ -2433,7 +2537,8 @@ class ClientHandler extends Thread
                     }
                     else
                     {
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                     }
                 }
 
@@ -2441,11 +2546,14 @@ class ClientHandler extends Thread
                 //Add session
                 else if (received.equals("add_session"))
                 {
+                    s_codice_invito = Integer.parseInt(dis.readLine());
+
                     if(is_disconnect == false && is_connect == true)
                     {
-                        dos.writeBytes("1" + '\n');
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n');
 
-                        s_codice_invito = Integer.parseInt(dis.readLine());
+
 
 
                         find_trade = false;
@@ -2461,7 +2569,8 @@ class ClientHandler extends Thread
                             rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.id = " + send_id);
                             while (rs_temp.next()) {
 
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
 
                                 //Inserimento nella tabella relazione con sessione e utente
                                 pstmt = conn.prepareStatement("INSERT INTO R_Utente_Sessione " + "(id_utente, id_sessione) values (?,?)");
@@ -2473,10 +2582,12 @@ class ClientHandler extends Thread
 
 
                                 //Invio del titolo
-                                dos.writeBytes(rs_temp.getString("titolo") + '\n');
+                                sendMessage("T:" + rs_temp.getString("titolo"));
+                                //dos.writeBytes(rs_temp.getString("titolo") + '\n');
 
-                                //Invio del titolo
-                                dos.writeBytes(rs_temp.getString("sottotitolo") + '\n');
+                                //Invio del sottotitolo
+                                sendMessage("S:" + rs_temp.getString("sottotitolo"));
+                                //dos.writeBytes(rs_temp.getString("sottotitolo") + '\n');
 
 
                                 //Calcolo ed invio degli utenti online per quella sessione
@@ -2485,7 +2596,9 @@ class ClientHandler extends Thread
                                 while (rs.next()) {
                                     number_user_online_session++;
                                 }
-                                dos.writeBytes(Integer.toString(number_user_online_session) + '\n');
+
+                                sendMessage("NUO:" + Integer.toString(number_user_online_session));
+                                //dos.writeBytes(Integer.toString(number_user_online_session) + '\n');
 
 
 
@@ -2497,7 +2610,8 @@ class ClientHandler extends Thread
 
                         else
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
 
@@ -2505,7 +2619,8 @@ class ClientHandler extends Thread
                     }
                     else
                     {
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                     }
                 }
 
@@ -2513,14 +2628,15 @@ class ClientHandler extends Thread
                 //Adding object to equipment
                 else if (received.equals("add_object_equipment"))
                 {
+                    c_name = dis.readLine();
+                    what_character = dis.readLine();
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true)
                     {
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         find_category = false;
-
-                        c_name = dis.readLine();
-                        what_character = dis.readLine();
 
 
                         rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on o.id = rpo.id_oggetto INNER JOIN Personaggio p on p.id = rpo.id_personaggio WHERE p.id_sessione = " + session_id + " AND p.id = " + character_id + " AND o.nome = '" + c_name + "'");
@@ -2618,18 +2734,21 @@ class ClientHandler extends Thread
                             pstmt.execute();
                             pstmt.close(); // rilascio le risorse
 
-                            dos.writeBytes("1" + '\n');
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
 
                         }
                         else
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                     }
                     else
                     {
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                     }
                 }
 
@@ -2638,15 +2757,15 @@ class ClientHandler extends Thread
                 //Update hp of character
                 else if (received.equals("update_hp"))
                 {
+                    character_nome = dis.readLine();
+                    character_hp = Integer.parseInt(dis.readLine());
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
                     {
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         find_category = false;
-
-                        character_nome = dis.readLine();
-                        character_hp = Integer.parseInt(dis.readLine());
-
 
                         rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + character_nome + "'");
                         while (rs.next())
@@ -2664,18 +2783,21 @@ class ClientHandler extends Thread
                             pstmt.execute();
                             pstmt.close(); // rilascio le risorse
 
-                            dos.writeBytes("1" + '\n');
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
 
                         }
                         else
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                     }
                     else
                     {
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                     }
                 }
 
@@ -2683,14 +2805,15 @@ class ClientHandler extends Thread
                 //Update hp_max of character
                 else if (received.equals("update_hp_max"))
                 {
+                    character_nome = dis.readLine();
+                    character_hp_max = Integer.parseInt(dis.readLine());
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
                     {
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         find_category = false;
-
-                        character_nome = dis.readLine();
-                        character_hp_max = Integer.parseInt(dis.readLine());
 
 
                         rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + character_nome + "'");
@@ -2709,18 +2832,21 @@ class ClientHandler extends Thread
                             pstmt.execute();
                             pstmt.close(); // rilascio le risorse
 
-                            dos.writeBytes("1" + '\n');
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
 
                         }
                         else
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                     }
                     else
                     {
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                     }
                 }
 
@@ -2728,13 +2854,14 @@ class ClientHandler extends Thread
                 //Unlock trading
                 else if (received.equals("unlock_trading"))
                 {
+                    character_nome = dis.readLine();
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
                     {
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         find_category = false;
-
-                        character_nome = dis.readLine();
 
 
                         rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + character_nome + "'");
@@ -2753,33 +2880,36 @@ class ClientHandler extends Thread
                             pstmt.execute();
                             pstmt.close(); // rilascio le risorse
 
-                            dos.writeBytes("1" + '\n');
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
 
                         }
                         else
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                     }
                     else
                     {
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                     }
                 }
 
 
-                //Unlock trading
+                //Lock trading
                 else if (received.equals("lock_trading"))
                 {
+                    character_nome = dis.readLine();
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
                     {
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         find_category = false;
-
-                        character_nome = dis.readLine();
-
 
                         rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + character_nome + "'");
                         while (rs.next())
@@ -2797,18 +2927,21 @@ class ClientHandler extends Thread
                             pstmt.execute();
                             pstmt.close(); // rilascio le risorse
 
-                            dos.writeBytes("1" + '\n');
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
 
                         }
                         else
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                     }
                     else
                     {
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                     }
                 }
 
@@ -2826,7 +2959,8 @@ class ClientHandler extends Thread
                 {
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
 
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         number_items_b = 0;
 
@@ -2835,30 +2969,39 @@ class ClientHandler extends Thread
                             number_items_b++;
                         }
 
-                        dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
+                        sendMessage("NOB:" + Integer.toString(number_items_b));
+                        //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
 
                         image = null;
 
                         rs = stmt.executeQuery("SELECT * from Oggetti o WHERE rpo.id_sessione = " + session_id);
                         while (rs.next()) {
 
-                            dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
-                            dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
+                            sendMessage("N:" + rs.getString("nome"));
+                            //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
+
+                            sendMessage("D:" + rs.getString("descrizione"));
+                            //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
 
                             image = rs.getBlob("foto");
                             byte barr[] = image.getBytes(1,(int)image.length());
+                            sleep(150);
                             dos.write(barr);
 
                             //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
-                            dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
 
-                            dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
+                            sendMessage("V:" + rs.getString("valore"));
+                            //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+                            sendMessage("Q:" + rs.getString("quantita"));
+                            //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
                         }
 
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
                 }
 
 
@@ -2883,17 +3026,17 @@ class ClientHandler extends Thread
                 //Remove object from character
                 else if (received.equals("remove_object_character"))
                 {
+                    o_nome = dis.readLine(); //Mi prendo il nome dell'oggetto
+                    ob_quantity = Integer.parseInt(dis.readLine());
+
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
 
 
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         find_object = false;
-
-                        o_nome = dis.readLine(); //Mi prendo il nome dell'oggetto
-                        ob_quantity = Integer.parseInt(dis.readLine());
-
-
 
 
                         rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + character_id + " AND o.id_sessione = " + session_id + " AND o.nome = '" + o_nome + "'");
@@ -2906,7 +3049,8 @@ class ClientHandler extends Thread
 
                         if(find_object == false)
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                         else
@@ -2916,12 +3060,14 @@ class ClientHandler extends Thread
                             pstmt.setInt(2, ob_id);
                             pstmt.execute();
                             pstmt.close(); // rilascio le risorse
-                            dos.writeBytes("1" + '\n');
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
                         }
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
                 }
 
 
@@ -2929,16 +3075,17 @@ class ClientHandler extends Thread
 
                 else if (received.equals("update_session_data"))
                 {
+                    o_nome = dis.readLine();
+                    ob_type = dis.readLine();
+                    ob_data = dis.readLine();
+
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
                     {
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         find_category = false;
-
-                        o_nome = dis.readLine();
-                        ob_type = dis.readLine();
-                        ob_data = dis.readLine();
-
 
                         rs = stmt.executeQuery("SELECT * from Sessioni p WHERE p.titolo = '" + o_nome + "' AND p.id_host = " + client_id);
                         while (rs.next())
@@ -2956,7 +3103,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Sessioni SET titolo = '" + ob_data + "' where Sessioni.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("sottotitolo"))
@@ -2964,7 +3112,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Sessioni SET sottotitolo = '" + ob_data + "' where Sessioni.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
 
@@ -2972,19 +3121,22 @@ class ClientHandler extends Thread
 
                             else
                             {
-                                dos.writeBytes("-3" + '\n');
+                                sendMessage("-3");
+                                //dos.writeBytes("-3" + '\n');
                             }
 
                         }
                         else
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                     }
                     else
                     {
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                     }
                 }
 
@@ -2992,14 +3144,16 @@ class ClientHandler extends Thread
                 //DA CAMBIARE
                 else if (received.equals("get_category_data"))
                 {
+                    o_nome = dis.readLine();
+                    ob_type = dis.readLine();
+
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true)
                     {
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         find_category = false;
-
-                        o_nome = dis.readLine();
-                        ob_type = dis.readLine();
 
 
                         rs = stmt.executeQuery("SELECT * from Categorie p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + o_nome + "'");
@@ -3020,14 +3174,20 @@ class ClientHandler extends Thread
 
                                 if(ob_type.equals("descrizione"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(rs.getString("descrizione") + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(rs.getString("descrizione"));
+                                    //dos.writeBytes(rs.getString("descrizione") + '\n');
                                 }
 
                                 else if(ob_type.equals("tipo_potenza"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(rs.getString("tipo_potenza") + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(rs.getString("descrizione"));
+                                    //dos.writeBytes(rs.getString("tipo_potenza") + '\n');
                                 }
 
 
@@ -3036,133 +3196,197 @@ class ClientHandler extends Thread
 
                                 else if(ob_type.equals("head"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_head_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_head_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_head_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("torso"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_torso_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_torso_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_torso_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("left_arm"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_left_arm_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_left_arm_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_left_arm_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("right_arm"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_right_arm_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_right_arm_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_right_arm_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("left_leg"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_left_leg_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_left_leg_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_left_leg_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("right_leg"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_right_leg_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_right_leg_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_right_leg_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("first_weapon"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_first_weapon_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_first_weapon_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_first_weapon_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("secondary_weapon"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_secondary_weapon_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_secondary_weapon_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_secondary_weapon_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("gloves"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_gloves_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_gloves_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_gloves_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("left_gloves"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_left_gloves_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_left_gloves_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_left_gloves_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("right_gloves"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_right_gloves_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_right_gloves_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_right_gloves_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("shoes"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_shoes_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_shoes_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_shoes_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("greaves"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_greaves_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_greaves_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_greaves_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("left_greaves"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_left_greaves_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_left_greaves_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_left_greaves_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("right_greaves"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_right_greaves_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_right_greaves_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_right_greaves_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("magic"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_magic_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_magic_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_magic_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("other"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_other_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_other_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_other_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("arms"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_arms_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_arms_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_arms_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("legs"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_legs_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_legs_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_legs_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("ammo"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("is_ammo_eq")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_ammo_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_ammo_eq")) + '\n');
                                 }
 
                                 else if(ob_type.equals("numero_slot"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(Integer.toString(rs.getInt("numero_slot")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("numero_slot")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("numero_slot")) + '\n');
                                 }
 
                                 else
                                 {
-                                    dos.writeBytes("-3" + '\n');
+                                    sendMessage("-3");
+                                    //dos.writeBytes("-3" + '\n');
                                 }
                             }
 
@@ -3171,28 +3395,33 @@ class ClientHandler extends Thread
                         }
                         else
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                     }
                     else
                     {
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                     }
                 }
 
 
                 else if (received.equals("update_category_data"))
                 {
+                    o_nome = dis.readLine();
+                    ob_type = dis.readLine();
+                    ob_data = dis.readLine();
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
                     {
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         find_category = false;
 
-                        o_nome = dis.readLine();
-                        ob_type = dis.readLine();
-                        ob_data = dis.readLine();
+
 
 
                         rs = stmt.executeQuery("SELECT * from Categorie p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + o_nome + "'");
@@ -3211,7 +3440,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET nome = '" + ob_data + "' where Categorie.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("descrizione"))
@@ -3219,7 +3449,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET descrizione = '" + ob_data + "' where Categorie.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("tipo_potenza"))
@@ -3227,7 +3458,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET tipo_potenza = '" + ob_data + "' where Categorie.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("head"))
@@ -3235,7 +3467,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_head_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("torso"))
@@ -3243,7 +3476,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_torso_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("left_arm"))
@@ -3251,7 +3485,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_arm_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("right_arm"))
@@ -3259,7 +3494,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_arm_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("left_leg"))
@@ -3267,7 +3503,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_leg_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("right_leg"))
@@ -3275,7 +3512,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_leg_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("first_weapon"))
@@ -3283,7 +3521,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_first_weapon_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("secondary_weapon"))
@@ -3291,7 +3530,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_secondary_weapon_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("gloves"))
@@ -3299,7 +3539,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_gloves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("left_gloves"))
@@ -3307,7 +3548,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_gloves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("right_gloves"))
@@ -3315,7 +3557,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_gloves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("shoes"))
@@ -3323,7 +3566,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_shoes_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("greaves"))
@@ -3331,7 +3575,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_greaves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("left_greaves"))
@@ -3339,7 +3584,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_greaves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("right_greaves"))
@@ -3347,7 +3593,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_greaves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("magic"))
@@ -3355,7 +3602,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_magic_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("other"))
@@ -3363,7 +3611,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_other_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("arms"))
@@ -3371,7 +3620,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_arms_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("legs"))
@@ -3379,7 +3629,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_legs_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("ammo"))
@@ -3387,7 +3638,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET is_ammo_eq = '1' WHERE Categorie.id = '" + send_id + "'");
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("numero_slot"))
@@ -3395,7 +3647,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Categorie SET numero_slot = '" + Integer.parseInt(ob_data) + "' where Categorie.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
 
@@ -3404,19 +3657,22 @@ class ClientHandler extends Thread
 
                             else
                             {
-                                dos.writeBytes("-3" + '\n');
+                                sendMessage("-3");
+                                //dos.writeBytes("-3" + '\n');
                             }
 
                         }
                         else
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                     }
                     else
                     {
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                     }
                 }
 
@@ -3437,14 +3693,16 @@ class ClientHandler extends Thread
 
                 else if (received.equals("get_personaggi_data"))
                 {
+                    o_nome = dis.readLine();
+                    ob_type = dis.readLine();
+
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true)
                     {
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         find_category = false;
-
-                        o_nome = dis.readLine();
-                        ob_type = dis.readLine();
 
 
                         rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + o_nome + "'");
@@ -3466,38 +3724,50 @@ class ClientHandler extends Thread
 
                                 if(ob_type.equals("hp"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("hp")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("hp")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("hp")) + '\n');
                                 }
 
                                 else if(ob_type.equals("biografia"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(rs.getString("biografia") + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(rs.getString("biografia"));
+                                    //dos.writeBytes(rs.getString("biografia") + '\n');
                                 }
 
                                 else if(ob_type.equals("razza"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(rs.getString("razza") + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(rs.getString("razza"));
+                                    //dos.writeBytes(rs.getString("razza") + '\n');
                                 }
 
                                 else if(ob_type.equals("eta"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("eta")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("eta")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("eta")) + '\n');
                                 }
 
                                 else if(ob_type.equals("peso"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Float.toString(rs.getFloat("peso")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Float.toString(rs.getFloat("peso")));
+                                    //dos.writeBytes( Float.toString(rs.getFloat("peso")) + '\n');
                                 }
 
                                 else if(ob_type.equals("altezza"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Float.toString(rs.getFloat("altezza")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Float.toString(rs.getFloat("altezza")));
+                                    //dos.writeBytes( Float.toString(rs.getFloat("altezza")) + '\n');
                                 }
 
                                 //GET FOTO
@@ -3505,171 +3775,226 @@ class ClientHandler extends Thread
 
                                 else if(ob_type.equals("hp_max"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("hp_max")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("hp_max")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("hp_max")) + '\n');
                                 }
 
                                 else if(ob_type.equals("is_character"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("is_character")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("is_character")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("is_character")) + '\n');
                                 }
 
                                 else if(ob_type.equals("is_npc"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("is_npc")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("is_npc")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("is_npc")) + '\n');
                                 }
 
                                 else if(ob_type.equals("is_riding_animal"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("is_riding_animal")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("is_riding_animal")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("is_riding_animal")) + '\n');
                                 }
 
 
                                 else if(ob_type.equals("is_enemy"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("is_enemy")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("is_enemy")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("is_enemy")) + '\n');
                                 }
 
 
                                 else if(ob_type.equals("punti_skill"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("punti_skill")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("punti_skill")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("punti_skill")) + '\n');
                                 }
 
                                 else if(ob_type.equals("is_enabled"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("is_enabled")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("is_enabled")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("is_enabled")) + '\n');
                                 }
 
                                 else if(ob_type.equals("is_trading_enabled"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("is_trading_enabled")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("is_trading_enabled")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("is_trading_enabled")) + '\n');
                                 }
 
                                 else if(ob_type.equals("colore_capelli"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(rs.getString("colore_capelli") + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(rs.getString("colore_capelli"));
+                                    //dos.writeBytes(rs.getString("colore_capelli") + '\n');
                                 }
 
                                 else if(ob_type.equals("distinguersi_mark"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(rs.getString("distinguersi_mark") + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(rs.getString("distinguersi_mark"));
+                                    //dos.writeBytes(rs.getString("distinguersi_mark") + '\n');
                                 }
 
                                 else if(ob_type.equals("cicatrici"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(rs.getString("cicatrici") + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(rs.getString("cicatrici"));
+                                    //dos.writeBytes(rs.getString("cicatrici") + '\n');
                                 }
 
                                 else if(ob_type.equals("tatuaggi"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(rs.getString("tatuaggi") + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(rs.getString("tatuaggi"));
+                                    //dos.writeBytes(rs.getString("tatuaggi") + '\n');
                                 }
 
                                 else if(ob_type.equals("anno_nascita"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("anno_nascita")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("anno_nascita")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("anno_nascita")) + '\n');
                                 }
 
                                 else if(ob_type.equals("luogo_nascita"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(rs.getString("luogo_nascita") + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(rs.getString("luogo_nascita"));
+                                    //dos.writeBytes(rs.getString("luogo_nascita") + '\n');
                                 }
 
                                 else if(ob_type.equals("sesso"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(rs.getString("sesso") + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(rs.getString("sesso"));
+                                    //dos.writeBytes(rs.getString("sesso") + '\n');
                                 }
 
                                 else if(ob_type.equals("colore_pelle"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(rs.getString("colore_pelle") + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(rs.getString("colore_pelle"));
+                                    //dos.writeBytes(rs.getString("colore_pelle") + '\n');
                                 }
 
                                 else if(ob_type.equals("slot_head"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("slot_head")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("slot_head")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("slot_head")) + '\n');
                                 }
 
                                 else if(ob_type.equals("slot_torso"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("slot_torso")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("slot_torso")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("slot_torso")) + '\n');
                                 }
 
                                 else if(ob_type.equals("slot_arms"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("slot_arms")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("slot_arms")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("slot_arms")) + '\n');
                                 }
 
                                 else if(ob_type.equals("slot_legs"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("slot_legs")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("slot_legs")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("slot_legs")) + '\n');
                                 }
 
                                 else if(ob_type.equals("slot_weapons"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("slot_weapons")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("slot_weapons")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("slot_weapons")) + '\n');
                                 }
 
                                 else if(ob_type.equals("slot_gloves"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("slot_gloves")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("slot_gloves")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("slot_gloves")) + '\n');
                                 }
 
                                 else if(ob_type.equals("slot_shoes"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("slot_shoes")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("slot_shoes")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("slot_shoes")) + '\n');
                                 }
 
                                 else if(ob_type.equals("slot_greaves"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("slot_greaves")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("slot_greaves")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("slot_greaves")) + '\n');
                                 }
 
                                 else if(ob_type.equals("slot_magic"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("slot_magic")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("slot_magic")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("slot_magic")) + '\n');
                                 }
 
                                 else if(ob_type.equals("slot_other"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("slot_other")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("slot_other")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("slot_other")) + '\n');
                                 }
 
                                 else if(ob_type.equals("slot_ammo"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("slot_ammo")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("slot_ammo")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("slot_ammo")) + '\n');
                                 }
 
                                 else
                                 {
-                                    dos.writeBytes("-3" + '\n');
+                                    sendMessage("-3");
+                                    //dos.writeBytes("-3" + '\n');
                                 }
                             }
 
@@ -3678,28 +4003,34 @@ class ClientHandler extends Thread
                         }
                         else
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                     }
                     else
                     {
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                     }
                 }
 
 
                 else if (received.equals("update_personaggi_data"))
                 {
+                    o_nome = dis.readLine();
+                    ob_type = dis.readLine();
+                    ob_data = dis.readLine();
+
+
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
                     {
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         find_category = false;
 
-                        o_nome = dis.readLine();
-                        ob_type = dis.readLine();
-                        ob_data = dis.readLine();
 
 
                         rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + o_nome + "'");
@@ -3719,7 +4050,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET nome = '" + ob_data + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("hp"))
@@ -3727,7 +4059,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET hp = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("biografia"))
@@ -3735,7 +4068,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET biografia = '" + ob_data + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("razza"))
@@ -3743,7 +4077,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET razza = '" + ob_data + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("eta"))
@@ -3751,7 +4086,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET eta = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("peso"))
@@ -3759,7 +4095,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET peso = '" + Float.parseFloat(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("altezza"))
@@ -3767,7 +4104,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET altezza = '" + Float.parseFloat(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             //UPDATE FOTO
@@ -3782,7 +4120,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET hp_max = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("is_character"))
@@ -3790,7 +4129,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET is_character = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("is_npc"))
@@ -3798,7 +4138,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET is_npc = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("is_riding_animal"))
@@ -3806,7 +4147,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET is_riding_animal = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
 
@@ -3815,7 +4157,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET is_enemy = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
 
@@ -3824,7 +4167,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET punti_skill = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("is_enabled"))
@@ -3832,7 +4176,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET is_enabled = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
 
@@ -3841,7 +4186,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET colore_capelli = '" + ob_data + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("colore_occhi"))
@@ -3849,7 +4195,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET colore_occhi = '" + ob_data + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("distinguersi_mark"))
@@ -3857,7 +4204,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET distinguersi_mark = '" + ob_data + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("cicatrici"))
@@ -3865,7 +4213,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET cicatrici = '" + ob_data + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("tatuaggi"))
@@ -3873,7 +4222,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET tatuaggi = '" + ob_data + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("anno_nascita"))
@@ -3881,7 +4231,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET anno_nascita = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("luogo_nascita"))
@@ -3889,7 +4240,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET luogo_nascita = '" + ob_data + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("sesso"))
@@ -3897,7 +4249,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET sesso = '" + ob_data + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("colore_pelle"))
@@ -3905,7 +4258,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET colore_pelle = '" + ob_data + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("slot_head"))
@@ -3913,7 +4267,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_head = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("slot_torso"))
@@ -3921,7 +4276,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_torso = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("slot_arms"))
@@ -3929,7 +4285,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_arms = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("slot_legs"))
@@ -3937,7 +4294,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_legs = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("slot_weapons"))
@@ -3945,7 +4303,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_weapons = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("slot_gloves"))
@@ -3953,7 +4312,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_gloves = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("slot_shoes"))
@@ -3961,7 +4321,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_shoes = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("slot_greaves"))
@@ -3969,7 +4330,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_greaves = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("slot_magic"))
@@ -3977,7 +4339,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_magic = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("slot_other"))
@@ -3985,7 +4348,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_other = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("slot_ammo"))
@@ -3993,38 +4357,43 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_ammo = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else
                             {
-                                dos.writeBytes("-3" + '\n');
+                                sendMessage("-3");
+                                //dos.writeBytes("-3" + '\n');
                             }
 
                         }
                         else
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                     }
                     else
                     {
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                     }
                 }
 
 
                 else if (received.equals("get_object_data"))
                 {
+                    o_nome = dis.readLine();
+                    ob_type = dis.readLine();
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true)
                     {
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         find_category = false;
-
-                        o_nome = dis.readLine();
-                        ob_type = dis.readLine();
 
 
                         rs = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_sessione = " + session_id + " AND o.nome = '" + o_nome + "'");
@@ -4046,75 +4415,109 @@ class ClientHandler extends Thread
 
                                 if(ob_type.equals("descrizione"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(rs.getString("descrizione") + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(rs.getString("descrizione"));
+                                    //dos.writeBytes(rs.getString("descrizione") + '\n');
                                 }
 
                                 else if(ob_type.equals("valore"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Float.toString(rs.getFloat("valore")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Float.toString(rs.getFloat("valore")));
+                                    //dos.writeBytes( Float.toString(rs.getFloat("valore")) + '\n');
                                 }
 
                                 else if(ob_type.equals("campo1"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(rs.getString("campo1") + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(rs.getString("campo1"));
+                                    //dos.writeBytes(rs.getString("campo1") + '\n');
                                 }
 
                                 else if(ob_type.equals("campo2"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(rs.getString("campo2") + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(rs.getString("campo2"));
+                                    //dos.writeBytes(rs.getString("campo2") + '\n');
                                 }
 
                                 else if(ob_type.equals("campo3"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(rs.getString("campo3") + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(rs.getString("campo3"));
+                                    //dos.writeBytes(rs.getString("campo3") + '\n');
                                 }
 
                                 else if(ob_type.equals("campo4"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(rs.getString("campo4") + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(rs.getString("campo4"));
+                                    //dos.writeBytes(rs.getString("campo4") + '\n');
                                 }
 
                                 else if(ob_type.equals("campo5"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(rs.getString("campo5") + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(rs.getString("campo5"));
+                                    //dos.writeBytes(rs.getString("campo5") + '\n');
                                 }
 
                                 else if(ob_type.equals("rarita_colore"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes(rs.getString("rarita_colore") + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(rs.getString("rarita_colore"));
+                                    //dos.writeBytes(rs.getString("rarita_colore") + '\n');
                                 }
 
                                 else if(ob_type.equals("peso"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Float.toString(rs.getFloat("peso")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Float.toString(rs.getFloat("peso")));
+                                    //dos.writeBytes( Float.toString(rs.getFloat("peso")) + '\n');
                                 }
 
                                 else if(ob_type.equals("durabilita"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Integer.toString(rs.getInt("durabilita")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("durabilita")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("durabilita")) + '\n');
                                 }
 
                                 else if(ob_type.equals("potenza"))
                                 {
-                                    dos.writeBytes("1" + '\n');
-                                    dos.writeBytes( Float.toString(rs.getFloat("potenza")) + '\n');
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Float.toString(rs.getFloat("potenza")));
+                                    //dos.writeBytes( Float.toString(rs.getFloat("potenza")) + '\n');
                                 }
 
                                 //GET FOTO
 
                                 else
                                 {
-                                    dos.writeBytes("-3" + '\n');
+                                    sendMessage("-3");
+                                    //dos.writeBytes("-3" + '\n');
                                 }
                             }
 
@@ -4123,28 +4526,30 @@ class ClientHandler extends Thread
                         }
                         else
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                     }
                     else
                     {
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                     }
                 }
 
                 else if (received.equals("update_object_data"))
                 {
+                    o_nome = dis.readLine();
+                    ob_type = dis.readLine();
+                    ob_data = dis.readLine();
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
                     {
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         find_category = false;
-
-                        o_nome = dis.readLine();
-                        ob_type = dis.readLine();
-                        ob_data = dis.readLine();
-
 
                         rs = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_sessione = " + session_id + " AND o.nome = '" + o_nome + "'");
                         while (rs.next())
@@ -4163,7 +4568,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Oggetti SET nome = '" + ob_data + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("descrizione"))
@@ -4171,7 +4577,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Oggetti SET descrizione = '" + ob_data + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("valore"))
@@ -4179,7 +4586,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Oggetti SET valore = '" + Float.parseFloat(ob_data) + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("campo1"))
@@ -4187,7 +4595,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Oggetti SET campo1 = '" + ob_data + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("campo2"))
@@ -4195,7 +4604,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Oggetti SET campo2 = '" + ob_data + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("campo3"))
@@ -4203,7 +4613,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Oggetti SET campo3 = '" + ob_data + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("campo4"))
@@ -4211,7 +4622,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Oggetti SET campo4 = '" + ob_data + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("campo5"))
@@ -4219,7 +4631,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Oggetti SET campo5 = '" + ob_data + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("rarita"))
@@ -4227,7 +4640,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Oggetti SET rarita_colore = '" + ob_data + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("peso"))
@@ -4235,7 +4649,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Oggetti SET peso = '" + Float.parseFloat(ob_data) + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("durabilita"))
@@ -4243,7 +4658,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Oggetti SET durabilita = '" + Integer.parseInt(ob_data) + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else if(ob_type.equals("potenza"))
@@ -4251,7 +4667,8 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE Oggetti SET potenza = '" + Float.parseFloat(ob_data) + "' where Oggetti.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             //UPDATE FOTO
@@ -4259,19 +4676,22 @@ class ClientHandler extends Thread
 
                             else
                             {
-                                dos.writeBytes("-3" + '\n');
+                                sendMessage("-3");
+                                //dos.writeBytes("-3" + '\n');
                             }
 
                         }
                         else
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                     }
                     else
                     {
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
                     }
                 }
 
@@ -4281,17 +4701,19 @@ class ClientHandler extends Thread
                 //ADD object to category
                 else if (received.equals("add_object_category"))
                 {
+                    c_name = dis.readLine(); //Mi prendo il nome della category
+                    o_nome = dis.readLine(); //Mi prendo il nome dell'oggetto
+                    ob_quantity = Integer.parseInt(dis.readLine());
+
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
 
 
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         find_category = false;
                         find_object = false;
-
-                        c_name = dis.readLine(); //Mi prendo il nome della category
-                        o_nome = dis.readLine(); //Mi prendo il nome dell'oggetto
-                        ob_quantity = Integer.parseInt(dis.readLine());
 
 
                         rs = stmt.executeQuery("SELECT * from Categorie c WHERE c.id_sessione = " + session_id + " AND c.nome = '" + c_name + "'");
@@ -4309,12 +4731,14 @@ class ClientHandler extends Thread
 
                         if(find_category == false)
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                         else if(find_object == false)
                         {
-                            dos.writeBytes("-3" + '\n');
+                            sendMessage("-3");
+                            //dos.writeBytes("-3" + '\n');
                         }
 
                         else
@@ -4331,35 +4755,42 @@ class ClientHandler extends Thread
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
 
-                                dos.writeBytes("1" + '\n');
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
                             }
 
                             else
                             {
-                                dos.writeBytes("-4" + '\n');
+                                sendMessage("-4");
+                                //dos.writeBytes("-4" + '\n');
                             }
 
                         }
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
                 }
 
                 //ADD object to character
                 else if (received.equals("add_object_character"))
                 {
+                    c_name = dis.readLine(); //Mi prendo il nome del character
+                    o_nome = dis.readLine(); //Mi prendo il nome dell'oggetto
+                    ob_quantity = Integer.parseInt(dis.readLine());
+
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
 
 
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         find_character = false;
                         find_object = false;
 
-                        c_name = dis.readLine(); //Mi prendo il nome del character
-                        o_nome = dis.readLine(); //Mi prendo il nome dell'oggetto
-                        ob_quantity = Integer.parseInt(dis.readLine());
+
 
 
 
@@ -4380,12 +4811,14 @@ class ClientHandler extends Thread
 
                         if(find_character == false)
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                         else if(find_object == false)
                         {
-                            dos.writeBytes("-3" + '\n');
+                            sendMessage("-3");
+                            //dos.writeBytes("-3" + '\n');
                         }
 
                         else
@@ -4419,36 +4852,43 @@ class ClientHandler extends Thread
 
                             }
 
-                            dos.writeBytes("1" + '\n');
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
                         }
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
                 }
 
                 //Creating object
                 else if (received.equals("create_object"))
                 {
+                    o_nome = dis.readLine(); //Mi prendo il nome dell'oggetto
+                    o_descrizione = dis.readLine(); //Mi prendo la descrizione dell'oggetto
+                    o_rarita = dis.readLine();
+                    o_campo1 = dis.readLine();
+                    o_campo2 = dis.readLine();
+                    o_campo3 = dis.readLine();
+                    o_campo4 = dis.readLine();
+                    o_campo5 = dis.readLine();
+                    o_valore = Float.parseFloat(dis.readLine());
+                    o_peso = Float.parseFloat(dis.readLine());
+                    o_potenza = Float.parseFloat(dis.readLine());
+                    o_durabilita = Integer.parseInt(dis.readLine());
+
+
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
 
 
-                        dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
                         find_category = false;
 
-                        o_nome = dis.readLine(); //Mi prendo il nome dell'oggetto
-                        o_descrizione = dis.readLine(); //Mi prendo la descrizione dell'oggetto
-                        o_rarita = dis.readLine();
-                        o_campo1 = dis.readLine();
-                        o_campo2 = dis.readLine();
-                        o_campo3 = dis.readLine();
-                        o_campo4 = dis.readLine();
-                        o_campo5 = dis.readLine();
-                        o_valore = Float.parseFloat(dis.readLine());
-                        o_peso = Float.parseFloat(dis.readLine());
-                        o_potenza = Float.parseFloat(dis.readLine());
-                        o_durabilita = Integer.parseInt(dis.readLine());
+
 
                         //FOTO
 
@@ -4463,7 +4903,8 @@ class ClientHandler extends Thread
 
                         if(find_category)
                         {
-                            dos.writeBytes("-2" + '\n');
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
                         }
 
                         else
@@ -4489,12 +4930,14 @@ class ClientHandler extends Thread
                             pstmt.execute();
                             pstmt.close(); // rilascio le risorse
 
-                            dos.writeBytes("1" + '\n');
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
                         }
 
                     }
                     else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
                 }
 
 
@@ -4541,7 +4984,8 @@ class ClientHandler extends Thread
                         }
 
                     }
-                    dos.writeBytes(variable_return + '\n');
+                    sendMessage(variable_return);
+                    //dos.writeBytes(variable_return + '\n');
                     
                 }
 
@@ -4550,8 +4994,6 @@ class ClientHandler extends Thread
                     //INVIO MESSAGGIO ALL'UTENTE DESIDERATO
 
 
-
-                    //DATA CAMBIARE
                     new_username = dis.readLine();
                     new_password = dis.readLine();
                     //new_name = dis.readLine();
@@ -4605,7 +5047,8 @@ class ClientHandler extends Thread
                         }
 
                         System.out.println("Restituisco variabile inserimento utente " + variable_return);
-                        dos.writeBytes(variable_return + '\n');
+                        sendMessage(variable_return);
+                        //dos.writeBytes(variable_return + '\n');
 
                         if(my_bool)
                         {
@@ -4618,7 +5061,8 @@ class ClientHandler extends Thread
                     {
                         System.out.println(e);
                         variable_return = "-1";
-                        dos.writeBytes(variable_return + '\n');
+                        sendMessage(variable_return);
+                        //dos.writeBytes(variable_return + '\n');
                     } catch (ClassNotFoundException e) {
                         e.printStackTrace();
                     }
@@ -4645,10 +5089,12 @@ class ClientHandler extends Thread
                         /*pstmt = conn.prepareStatement("UPDATE Utenti SET ultimo_login = CURRENT_TIMESTAMP where Utenti.id = " + client_id);
                         pstmt.execute();*/
 
-                        dos.writeBytes("1" + '\n');
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n');
                     }
                 	else
-                        dos.writeBytes("-1" + '\n');
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
 
                 }
 
@@ -4667,6 +5113,7 @@ class ClientHandler extends Thread
 	                    System.out.println("Connection closed");
 	
 
+	                    sleep(1000);
 
 	                    pstmt.close(); // rilascio le risorse
 	                    stmt.close(); // rilascio le risorse
@@ -4746,7 +5193,8 @@ class ClientHandler extends Thread
                         }
 
 
-                        dos.writeBytes(Integer.toString(number_users_online) + '\n');
+                        sendMessage(Integer.toString(number_users_online));
+                        //dos.writeBytes(Integer.toString(number_users_online) + '\n');
 
 
                         // creo la tabella
@@ -4759,7 +5207,8 @@ class ClientHandler extends Thread
                                 toreturn = rs.getString("nome_utente");
                                 //toreturn = " NAME: " + rs.getString("nome") + "  SURNAME: " + rs.getString("cognome") + "  USERNAME: " + rs.getString("nome_utente");
                                 System.out.println(toreturn);
-                                dos.writeBytes(toreturn + '\n');
+                                sendMessage(toreturn);
+                                //dos.writeBytes(toreturn + '\n');
 
                             }
 
@@ -4803,6 +5252,7 @@ class ClientHandler extends Thread
             System.out.println("\nClosing Resources\n");
             this.dis.close(); 
             this.dos.close();
+            this.writer.close();
             if(pstmt != null)
                 pstmt.close();
 
