@@ -271,7 +271,6 @@ class ClientHandler extends Thread
         { 
             try {
 
-
                 // receive the answer from client 
                 received = dis.readLine();
                 if(received.equals("connect"))      //CONNECT
@@ -414,7 +413,8 @@ class ClientHandler extends Thread
 
                     }
                 	else
-                		dos.writeBytes("-1" + '\n');
+                	    sendMessage("-1");
+                		//dos.writeBytes("-1" + '\n');
 
                     
 
@@ -719,6 +719,18 @@ class ClientHandler extends Thread
 
                             sendMessage("Q:" + rs.getString("quantita"));
                             //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
+
+
+
+                            sendMessage("RC:" + rs.getString("rarita_colore")); //Mando la rarita del colore
+
+                            sendMessage("PO:" + Float.toString(rs.getFloat("potenza"))); //Mando la potenza
+
+                            sendMessage("PE:" + Float.toString(rs.getFloat("peso"))); //Mando il peso
+
+                            sendMessage("DUR:" + Integer.toString(rs.getInt("durabilita"))); //Mando la potenza
+
+
                         }
 
 
@@ -777,6 +789,14 @@ class ClientHandler extends Thread
 
                             sendMessage("Q:" + rs.getString("quantita"));
                             //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
+
+                            sendMessage("RC:" + rs.getString("rarita_colore")); //Mando la rarita del colore
+
+                            sendMessage("PO:" + Float.toString(rs.getFloat("potenza"))); //Mando la potenza
+
+                            sendMessage("PE:" + Float.toString(rs.getFloat("peso"))); //Mando il peso
+
+                            sendMessage("DUR:" + Integer.toString(rs.getInt("durabilita"))); //Mando la potenza
                         }
 
 
@@ -973,6 +993,36 @@ class ClientHandler extends Thread
                                 sendMessage("right_greaves");
                             }
 
+                            else if (rs.getInt("is_magic_eq") == 1)
+                            {
+                                //dos.writeBytes("greaves" + '\n');
+                                sendMessage("magic");
+                            }
+
+                            else if (rs.getInt("is_other_eq") == 1)
+                            {
+                                //dos.writeBytes("greaves" + '\n');
+                                sendMessage("other");
+                            }
+
+                            else if (rs.getInt("is_arms_eq") == 1)
+                            {
+                                //dos.writeBytes("greaves" + '\n');
+                                sendMessage("arms");
+                            }
+
+                            else if (rs.getInt("is_legs_eq") == 1)
+                            {
+                                //dos.writeBytes("greaves" + '\n');
+                                sendMessage("legs");
+                            }
+
+                            else if (rs.getInt("is_ammo_eq") == 1)
+                            {
+                                //dos.writeBytes("greaves" + '\n');
+                                sendMessage("ammo");
+                            }
+
 
                             sendMessage("N:" + rs.getString("nome"));
                             //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
@@ -1089,6 +1139,33 @@ class ClientHandler extends Thread
                         {
                             ob_type = "is_right_greaves_eq";
                         }
+
+                        else if (c_name.equals("magic"))
+                        {
+                            ob_type = "is_magic_eq";
+                        }
+
+                        else if (c_name.equals("other"))
+                        {
+                            ob_type = "is_other_eq";
+                        }
+
+                        else if (c_name.equals("arms"))
+                        {
+                            ob_type = "is_arms_eq";
+                        }
+
+                        else if (c_name.equals("legs"))
+                        {
+                            ob_type = "is_legs_eq";
+                        }
+
+                        else if (c_name.equals("ammo"))
+                        {
+                            ob_type = "is_ammo_eq";
+                        }
+
+
                         else
                         {
                             ob_type = null;
@@ -1185,6 +1262,15 @@ class ClientHandler extends Thread
                             //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
 
 
+                            sendMessage("RC:" + rs.getString("rarita_colore")); //Mando la rarita del colore
+
+                            sendMessage("PO:" + Float.toString(rs.getFloat("potenza"))); //Mando la potenza
+
+                            sendMessage("PE:" + Float.toString(rs.getFloat("peso"))); //Mando il peso
+
+                            sendMessage("DUR:" + Integer.toString(rs.getInt("durabilita"))); //Mando la potenza
+
+
                         }
 
 
@@ -1205,6 +1291,9 @@ class ClientHandler extends Thread
 
                     //Mi prendo il numero di possibili equipaggiamenti per quella categoria
                     c_number = Integer.parseInt(dis.readLine());
+
+
+                    c_type = dis.readLine(); // Mi prendo il tipo di categoria
 
 
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
@@ -1255,7 +1344,7 @@ class ClientHandler extends Thread
 
                             for(i = 0; i < c_number; i++)
                             {
-                                c_type = dis.readLine();
+
 
                                 if(c_type.equals("head"))
                                 {
@@ -1493,13 +1582,16 @@ class ClientHandler extends Thread
 
                 else if (received.equals("show_category_objects"))
                 {
+                    c_name = dis.readLine(); //Mi prendo il nome della categoria
+
+
                     if(is_disconnect == false && is_connect == true && is_session_connected == true) {
 
 
                         sendMessage("1");
                         //dos.writeBytes("1" + '\n'); // Restituisco la conferma
 
-                        c_name = dis.readLine();
+
 
                         find_category = false;
 
@@ -1576,6 +1668,8 @@ class ClientHandler extends Thread
                         sendMessage("NC:" + Integer.toString(number_characters));
                         //dos.writeBytes(Integer.toString(number_characters) + '\n'); //Ritorno il numero di characters per quell'utente
 
+                        image = null;
+
                         rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.id_utente = " + client_id + " AND p.is_character = 1");
                         while (rs_temp.next()) {
 
@@ -1587,10 +1681,11 @@ class ClientHandler extends Thread
 
                             sendMessage("HPMAX:" + Integer.toString(rs_temp.getInt("hp_max")));
                             //dos.writeBytes(Integer.toString(rs_temp.getInt("hp_max")) + '\n');
+
+                            image = rs.getBlob("immagine");
+                            byte barr[] = image.getBytes(1,(int)image.length());
+                            dos.write(barr);
                         }
-
-
-
 
 
                     }
@@ -1876,7 +1971,6 @@ class ClientHandler extends Thread
                         sendMessage("-1");
                     //dos.writeBytes("-1" + '\n');
                 }
-
 
                 //TRADING FROM
                 else if (received.equals("trading_from"))
@@ -2201,7 +2295,6 @@ class ClientHandler extends Thread
                 }
 
 
-
                 //Get quantity of object per un determinato character
                 //restituisce 1 perchè è entrato poi 1 se ha trovato l'oggetto sul character e lo restituisce poi -2 se non ha trovato l'oggetto e -1 se c'è errore
                 else if (received.equals("get_quantity_object_from_character"))
@@ -2243,7 +2336,6 @@ class ClientHandler extends Thread
                         sendMessage("-1");
                     //dos.writeBytes("-1" + '\n');
                 }
-
 
 
                 //Creating new character
@@ -2349,7 +2441,9 @@ class ClientHandler extends Thread
                     character_peso = Float.parseFloat(dis.readLine());
                     character_altezza = Float.parseFloat(dis.readLine());
                     character_hp_max = Integer.parseInt(dis.readLine());
-                    what_character = dis.readLine();
+
+
+                    what_character = dis.readLine(); // Tipo di character
 
                     character_capelli = dis.readLine();
                     character_occhi = dis.readLine();
@@ -2532,8 +2626,6 @@ class ClientHandler extends Thread
                             //dos.writeBytes("-2" + '\n');
                         }
 
-
-
                     }
                     else
                     {
@@ -2552,9 +2644,6 @@ class ClientHandler extends Thread
                     {
                         sendMessage("1");
                         //dos.writeBytes("1" + '\n');
-
-
-
 
                         find_trade = false;
                         rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.codice_invito = " + s_codice_invito);
@@ -2731,6 +2820,21 @@ class ClientHandler extends Thread
                                 pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_right_greaves_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
                             }
 
+                            else if(what_character.equals("arms"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_arms_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("legs"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_legs_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("ammo"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_ammo_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
                             pstmt.execute();
                             pstmt.close(); // rilascio le risorse
 
@@ -2751,7 +2855,6 @@ class ClientHandler extends Thread
                         //dos.writeBytes("-1" + '\n');
                     }
                 }
-
 
 
                 //Update hp of character
@@ -2948,14 +3051,11 @@ class ClientHandler extends Thread
 
                 // Game master
 
-
                 //Avaiable lista di equipaggiamenti di oggetti non equipaggiati
 
 
-
-
-                //Show all items
-                else if (received.equals("show_items"))
+                //Show all items of that session
+                else if (received.equals("show_items_session"))
                 {
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
 
@@ -2995,6 +3095,15 @@ class ClientHandler extends Thread
 
                             sendMessage("Q:" + rs.getString("quantita"));
                             //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
+
+
+                            sendMessage("RC:" + rs.getString("rarita_colore")); //Mando la rarita del colore
+
+                            sendMessage("PO:" + Float.toString(rs.getFloat("potenza"))); //Mando la potenza
+
+                            sendMessage("PE:" + Float.toString(rs.getFloat("peso"))); //Mando il peso
+
+                            sendMessage("DUR:" + Integer.toString(rs.getInt("durabilita"))); //Mando la durabilita
                         }
 
 
@@ -3005,10 +3114,7 @@ class ClientHandler extends Thread
                 }
 
 
-
                 //Update punti skill // DA non fare adesso
-
-
 
                 //Show all monsters
 
@@ -3017,10 +3123,6 @@ class ClientHandler extends Thread
                 //Show all characters
 
                 //Show all transport
-
-
-
-
 
 
                 //Remove object from character
@@ -3071,8 +3173,6 @@ class ClientHandler extends Thread
                 }
 
 
-
-
                 else if (received.equals("update_session_data"))
                 {
                     o_nome = dis.readLine();
@@ -3113,6 +3213,32 @@ class ClientHandler extends Thread
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
                                 sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("codice_invito"))
+                            {
+
+                                find_category = false;
+
+                                do
+                                {
+                                    s_codice_invito = (int)((Math.random()*((9999-1000)+1))+1000);
+
+                                    find_category = false;
+                                    rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.codice_invito = " + s_codice_invito);
+                                    while (rs_temp.next()) {
+                                        find_category = true;
+                                    }
+
+                                }
+                                while(find_category == true);
+
+
+                                pstmt = conn.prepareStatement("UPDATE Sessioni SET codice_invito = '" + s_codice_invito + "' where Sessioni.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage(Integer.toString(s_codice_invito));
                                 //dos.writeBytes("1" + '\n');
                             }
 
@@ -3676,18 +3802,13 @@ class ClientHandler extends Thread
                     }
                 }
 
-
                 /*
 
                 Nella sezione armi se equipaggio una categoria non posso equipaggiare altre
 
                 -Numero di equipaggiabili per ogni layer categoria
-                
-
 
                  */
-
-
 
                 //Update character data
 
@@ -4696,8 +4817,6 @@ class ClientHandler extends Thread
                 }
 
 
-
-
                 //ADD object to category
                 else if (received.equals("add_object_category"))
                 {
@@ -4789,11 +4908,6 @@ class ClientHandler extends Thread
 
                         find_character = false;
                         find_object = false;
-
-
-
-
-
 
                         rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + c_name + "'");
                         while (rs.next()) {
@@ -4989,6 +5103,7 @@ class ClientHandler extends Thread
                     
                 }
 
+
                 else if(received.equals("create_user"))
                 {
                     //INVIO MESSAGGIO ALL'UTENTE DESIDERATO
@@ -5069,6 +5184,52 @@ class ClientHandler extends Thread
 
                 }
 
+                else if(received.equals("update_user"))
+                {
+                    ob_type = dis.readLine();
+                    ob_data = dis.readLine();
+
+
+                    if(is_disconnect == false && is_connect == true) {
+                        sendMessage("1");
+
+                        if(ob_type.equals("nome_utente"))
+                        {
+                            pstmt = conn.prepareStatement("UPDATE Utenti SET nome_utente = '" + ob_data + "' where Utenti.id = " + client_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+                            sendMessage("1");
+                        }
+
+                        else if(ob_type.equals("password"))
+                        {
+                            pstmt = conn.prepareStatement("UPDATE Utenti SET password = '" + ob_data + "' where Utenti.id = " + client_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+                            sendMessage("1");
+                        }
+
+                        else if(ob_type.equals("email"))
+                        {
+                            pstmt = conn.prepareStatement("UPDATE Utenti SET email = '" + ob_data + "' where Utenti.id = " + client_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+                            sendMessage("1");
+                        }
+
+                        //Update immagine di profilo
+
+                        else
+                        {
+                            sendMessage("-2");
+                        }
+
+                    }
+                    else
+                        sendMessage("-1");
+
+                }
+
                 else if(received.equals("disconnect")) 
                 { 
                 	
@@ -5097,7 +5258,6 @@ class ClientHandler extends Thread
                     //dos.writeBytes("-1" + '\n');
 
                 }
-
 
 
                 else if(received.equals("close_connection")) 
@@ -5151,15 +5311,6 @@ class ClientHandler extends Thread
                         dos.writeUTF("Invalid input"); 
                         break; 
                 } */
-
-                /*else if(received.equals("close_connection"))
-                {
-
-                    System.out.println("\nConnection Closed\n");
-                    is_closed = true;
-                }
-
-                 */
 
 
                 else if(received.equals("show_users_online"))
