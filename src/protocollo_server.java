@@ -215,13 +215,15 @@ class ClientHandler extends Thread
         boolean is_o1_ok = false;
         boolean is_o2_ok = false;
 
+        float ch_peso = 0;
+
 
         String character_nome = "", character_biografia = "", character_razza = "";
         int character_hp = 0, character_eta = 0, character_hp_max;
         float character_peso = 0, character_altezza = 0;
         String what_character = "";
 
-        String character_capelli = "", character_occhi = "", character_mark = "", character_cicatrici = "", character_tatuaggi = "", character_luogo_nascita = "", character_sesso = "", character_colore_pelle = "";
+        String character_capelli = "", character_occhi = "", character_mark = "", character_cicatrici = "", character_tatuaggi = "", character_luogo_nascita = "", character_sesso = "", character_colore_pelle = "", character_classe = "";
         int character_anno_nascita = 0;
 
 
@@ -421,865 +423,8 @@ class ClientHandler extends Thread
                 }
 
 
-                // RESTITUISCE 1 se ha già fatto il login oppure -1 se ha problemi. Poi restituisce il numero di sessioni per quell'utente e poi ad ogni sessione il numero di utenti online
-                else if (received.equals("get_number_user_online_session"))
-                {
-                    if(is_disconnect == false && is_connect == true) {
 
-                        sendMessage("1");
-
-                        sendMessage("NS:" + Integer.toString(number_sessions));
-                        //dos.writeBytes(Integer.toString(number_sessions) + '\n');
-
-                        if (number_sessions != 0) {
-                            rs = stmt.executeQuery("SELECT * from Sessioni s inner join R_Utente_Sessione rus on rus.id_sessione = s.id where rus.id_utente = " + client_id);
-                            while (rs.next()) {
-
-                                //Calcolo ed invio degli utenti online per quella sessione
-                                number_user_online_session = 0;
-                                rs_temp = stmt.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE u.stato_login = 1 AND rus.id_sessione = " + rs.getString("id"));
-                                while (rs_temp.next()) {
-                                    number_user_online_session++;
-                                }
-
-                                sendMessage("NUO:" + Integer.toString(number_user_online_session));
-
-                            }
-
-
-                        }
-                    }
-                    else
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                }
-
-
-                else if (received.equals("connect_session"))
-                {
-                    if(is_disconnect == false && is_connect == true && is_session_connected == false) {
-                        id_passed_session = "";
-                        id_passed_session = dis.readLine();
-
-                        i = 0;
-                        rs = stmt.executeQuery("SELECT * from Sessioni s inner join R_Utente_Sessione rus on rus.id_sessione = s.id where rus.id_utente = " + client_id);
-                        while (rs.next()) {
-
-
-                            session_id = rs.getInt("id");
-
-                            if(i == Integer.parseInt(id_passed_session))
-                            {
-                                is_session_connected = true;
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-
-                                if(rs.getInt("id_host") != client_id) //Se l'utente non è host allora mi fai vedere la vista dei characters
-                                {
-                                    is_host = false;
-                                    rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.id_utente = " + client_id + " AND p.is_character = 1");
-                                    while (rs_temp.next()) {
-                                        number_characters++;
-                                    }
-
-                                    sendMessage("NC:" + Integer.toString(number_characters));
-                                    //dos.writeBytes(Integer.toString(number_characters) + '\n'); //Restituisco il numero di characters per quell'utente
-
-                                    rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.id_utente = " + client_id + " AND p.is_character = 1");
-                                    while (rs_temp.next()) {
-
-                                        sendMessage("N:" + rs_temp.getString("nome"));
-                                        //dos.writeBytes(rs_temp.getString("nome") + '\n');
-
-                                        sendMessage("HP:" + Integer.toString(rs_temp.getInt("hp")));
-                                        //dos.writeBytes(Integer.toString(rs_temp.getInt("hp")) + '\n');
-
-                                        sendMessage("HPMAX:" + Integer.toString(rs_temp.getInt("hp_max")));
-                                        //dos.writeBytes(Integer.toString(rs_temp.getInt("hp_max")) + '\n');
-                                    }
-
-
-                                }
-
-                                else
-                                {
-                                    //FUNZIONI PER IL GAME MASTER
-                                    is_host = true;
-
-                                }
-
-                            }
-
-                            i++;
-
-                        }
-
-                    }
-                    else
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                }
-
-                else if (received.equals("disconnect_session"))
-                {
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == false) {
-                        character_id = 0;
-                        session_id = 0;
-                        is_host = false;
-                        is_character_connected = false;
-                        is_session_connected = false;
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n');
-
-                    }
-                    else
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                }
-
-
-                else if (received.equals("get_users_session"))
-                {
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true) {
-
-                        if(number_sessions != 0)
-                        {
-                            sendMessage("1");
-                            //dos.writeBytes("1" + '\n');
-
-                            //Calcolo ed invio degli utenti online per quella sessione
-                            number_user_online_session = 0;
-                            rs_temp = stmt.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE rus.id_sessione = " + rs.getString("id"));
-                            while (rs_temp.next()) {
-                                number_user_online_session++;
-                            }
-                            sendMessage("NUOS:" + Integer.toString(number_user_online_session));
-                            //dos.writeBytes(Integer.toString(number_user_online_session) + '\n');
-
-                            rs_temp = stmt.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE AND rus.id_sessione = " + rs.getString("id"));
-                            while (rs_temp.next()) {
-
-                                sendMessage("NOU:" + rs_temp.getString("nome_utente"));
-                                //dos.writeBytes(rs_temp.getString("nome_utente") + '\n'); // Restituisco il nome dell'oggetto
-
-                                if(rs_temp.getInt("stato_login") == 1)
-                                {
-                                    sendMessage("is_logged");
-                                    //dos.writeBytes("is_logged" + '\n');
-                                }
-                                else if(rs_temp.getInt("stato_login") == 0)
-                                {
-                                    sendMessage("is_not_logged");
-                                    //dos.writeBytes("is_not_logged" + '\n');
-                                }
-
-                                image = rs_temp.getBlob("imm_profilo");
-                                byte barr[] = image.getBytes(1,(int)image.length());
-                                sleep(150);
-                                dos.write(barr);
-
-                            }
-                        }
-
-                    }
-                    else
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                }
-
-
-                else if (received.equals("show_user_session"))
-                {
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true) {
-
-                        if(number_sessions != 0)
-                        {
-                            sendMessage("1");
-                            //dos.writeBytes("1" + '\n');
-
-                            rs = stmt.executeQuery("SELECT * from Sessioni s inner join R_Utente_Sessione rus on rus.id_sessione = s.id where rus.id_utente = " + client_id);
-                            while (rs.next()) {
-
-                                //Invio del titolo
-                                sendMessage("T:" + rs.getString("titolo"));
-                                //dos.writeBytes(rs.getString("titolo") + '\n');
-
-                                if (rs.getString("sottotitolo") == null) {
-                                    sendMessage("S:0");
-                                } else {
-                                    System.out.println("SottoTitolo: " + rs.getString("sottotitolo"));
-                                    sendMessage("S:" + rs.getString("sottotitolo"));
-                                }
-
-                                //Calcolo ed invio degli utenti online per quella sessione
-                                number_user_online_session = 0;
-                                rs_temp = stmt.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE u.stato_login = 1 AND rus.id_sessione = " + rs.getString("id"));
-                                while (rs_temp.next()) {
-                                    number_user_online_session++;
-                                }
-                                sendMessage("NUO:" + Integer.toString(number_user_online_session));
-                                //dos.writeBytes(Integer.toString(number_user_online_session) + '\n');
-                                
-                            }
-                        }
-                    }
-                    else
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                }
-
-
-                else if (received.equals("connect_character"))
-                {
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true) {
-                        id_passed_character = "";
-                        id_passed_character = dis.readLine();
-
-                        i = 0;
-                        rs = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.id_utente = " + client_id + " AND p.is_character = 1");
-                        while (rs.next()) {
-
-
-                            character_id = rs.getInt("id");
-
-                            if(i == Integer.parseInt(id_passed_character))
-                            {
-                                is_character_connected = true;
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            i++;
-
-                        }
-
-                    }
-                    else
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                }
-
-
-                else if (received.equals("disconnect_character"))
-                {
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
-                        character_id = 0;
-                        is_character_connected = false;
-
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n');
-
-                    }
-                    else
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                }
-
-
-                else if (received.equals("get_backpack"))
-                {
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
-
-
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
-
-                        number_items_b = 0;
-
-                        rs = stmt.executeQuery("SELECT * from R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + character_id);
-                        while (rs.next()) {
-
-                           number_items_b++;
-
-                        }
-
-                        sendMessage("NOB:" + Integer.toString(number_items_b));
-                        //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
-
-                        image = null;
-
-                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + character_id);
-                        while (rs.next()) {
-
-                            sendMessage("N:" + rs.getString("nome"));
-                            //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
-
-                            sendMessage("D:" + rs.getString("descrizione"));
-                            //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
-
-                            image = rs.getBlob("foto");
-                            byte barr[] = image.getBytes(1,(int)image.length());
-                            sleep(150);
-                            dos.write(barr);
-
-                            //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
-
-                            sendMessage("V:" + rs.getString("valore"));
-                            //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
-
-                            sendMessage("Q:" + rs.getString("quantita"));
-                            //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
-
-
-
-                            sendMessage("RC:" + rs.getString("rarita_colore")); //Mando la rarita del colore
-
-                            sendMessage("PO:" + Float.toString(rs.getFloat("potenza"))); //Mando la potenza
-
-                            sendMessage("PE:" + Float.toString(rs.getFloat("peso"))); //Mando il peso
-
-                            sendMessage("DUR:" + Integer.toString(rs.getInt("durabilita"))); //Mando la potenza
-
-
-                        }
-
-
-                    }
-                    else
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                }
-
-
-                else if (received.equals("get_user_backpack")) // DA CAMBIARE
-                {
-                    filter_item = dis.readLine(); //Mi prendo l'id dell'utente
-
-                    send_id = Integer.parseInt(filter_item);
-
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
-
-
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
-
-
-                        number_items_b = 0;
-
-                        rs = stmt.executeQuery("SELECT * from R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + send_id);
-                        while (rs.next()) {
-
-                            number_items_b++;
-
-                        }
-
-                        sendMessage("NOB:" + Integer.toString(number_items_b));
-                        //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
-
-                        image = null;
-
-                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + send_id);
-                        while (rs.next()) {
-
-                            sendMessage("N:" + rs.getString("nome"));
-                            //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
-
-                            sendMessage("D:" + rs.getString("descrizione"));
-                            //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
-
-                            image = rs.getBlob("foto");
-                            byte barr[] = image.getBytes(1,(int)image.length());
-                            sleep(150);
-                            dos.write(barr);
-
-                            //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
-
-                            sendMessage("V:" + rs.getString("valore"));
-                            //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
-
-                            sendMessage("Q:" + rs.getString("quantita"));
-                            //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
-
-                            sendMessage("RC:" + rs.getString("rarita_colore")); //Mando la rarita del colore
-
-                            sendMessage("PO:" + Float.toString(rs.getFloat("potenza"))); //Mando la potenza
-
-                            sendMessage("PE:" + Float.toString(rs.getFloat("peso"))); //Mando il peso
-
-                            sendMessage("DUR:" + Integer.toString(rs.getInt("durabilita"))); //Mando la potenza
-                        }
-
-
-                    }
-                    else
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                }
-
-                else if (received.equals("get_character_backpack"))
-                {
-                    filter_item = dis.readLine(); //Mi prendo il nome del character
-
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
-
-
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
-
-
-
-                        find_character = false;
-
-                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.nome = '" + filter_item + "' AND p.is_character = 1 AND p.id_sessione = " + session_id);
-                        while (rs.next()) {
-                            find_character = true;
-                            send_id = rs.getInt("id");
-                        }
-
-
-                        number_items_b = 0;
-
-                        if(find_character == true)
-                        {
-
-                            rs = stmt.executeQuery("SELECT * from R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + send_id);
-                            while (rs.next()) {
-
-                                number_items_b++;
-
-                            }
-
-                            sendMessage("NOB:" + Integer.toString(number_items_b));
-                            //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
-
-                            image = null;
-
-                            rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + send_id);
-                            while (rs.next()) {
-
-                                sendMessage("N:" + rs.getString("nome"));
-                                //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
-
-                                sendMessage("D:" + rs.getString("descrizione"));
-                                //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
-
-                                image = rs.getBlob("foto");
-                                byte barr[] = image.getBytes(1,(int)image.length());
-                                sleep(150);
-                                dos.write(barr);
-
-                                //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
-
-                                sendMessage("V:" + rs.getString("valore"));
-                                //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
-
-                                sendMessage("Q:" + rs.getString("quantita"));
-                                //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
-                            }
-                        }
-                        else
-                            sendMessage("-2");
-                            //dos.writeBytes("-2" + '\n');
-
-                    }
-                    else
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                }
-
-
-                else if (received.equals("get_equipment"))
-                {
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
-
-
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
-
-                        number_items_b = 0;
-
-                        rs = stmt.executeQuery("SELECT * from R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + character_id + " AND (is_head_eq = 1 OR is_torso_eq = 1 OR is_left_arm_eq = 1 OR is_right_arm_eq = 1 OR is_left_leg_eq = 1 OR is_right_leg_eq = 1 OR is_first_weapon_eq = 1 OR is_second_weapon_eq = 1 OR is_gloves_eq = 1 OR is_left_gloves_eq = 1 OR is_right_gloves_eq = 1 OR is_shoes_eq = 1 OR is_greaves_eq = 1 OR is_left_greaves_eq = 1 OR is_right_greaves_eq = 1)");
-                        while (rs.next()) {
-
-                            number_items_b++;
-
-                        }
-
-                        sendMessage("NOB:" + Integer.toString(number_items_b));
-                        //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
-
-                        image = null;
-
-                        rs = stmt.executeQuery("SELECT * from R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + character_id + " AND (is_head_eq = 1 OR is_torso_eq = 1 OR is_left_arm_eq = 1 OR is_right_arm_eq = 1 OR is_left_leg_eq = 1 OR is_right_leg_eq = 1 OR is_first_weapon_eq = 1 OR is_second_weapon_eq = 1 OR is_gloves_eq = 1 OR is_left_gloves_eq = 1 OR is_right_gloves_eq = 1 OR is_shoes_eq = 1 OR is_greaves_eq = 1 OR is_left_greaves_eq = 1 OR is_right_greaves_eq = 1)");
-                        while (rs.next()) {
-
-                            if(rs.getInt("is_head_eq") == 1)
-                            {
-                                sendMessage("head");
-                                //dos.writeBytes("head" + '\n');
-
-                            }
-                            else if (rs.getInt("is_torso_eq") == 1)
-                            {
-                                //dos.writeBytes("torso" + '\n');
-                                sendMessage("torso");
-                            }
-
-                            else if (rs.getInt("is_left_arm_eq") == 1)
-                            {
-                                //dos.writeBytes("left_arm" + '\n');
-                                sendMessage("left_arm");
-                            }
-
-                            else if (rs.getInt("is_right_arm_eq") == 1)
-                            {
-                                //dos.writeBytes("right_arm" + '\n');
-                                sendMessage("right_arm");
-                            }
-
-                            else if (rs.getInt("is_left_leg_eq") == 1)
-                            {
-                                //dos.writeBytes("left_leg" + '\n');
-                                sendMessage("left_leg");
-                            }
-
-                            else if (rs.getInt("is_right_leg_eq") == 1)
-                            {
-                                //dos.writeBytes("right_leg" + '\n');
-                                sendMessage("right_leg");
-                            }
-
-                            else if (rs.getInt("is_first_weapon_eq") == 1)
-                            {
-                                //dos.writeBytes("first_weapon" + '\n');
-                                sendMessage("first_weapon");
-                            }
-
-                            else if (rs.getInt("is_secondary_weapon_eq") == 1)
-                            {
-                                //dos.writeBytes("secondary_weapon" + '\n');
-                                sendMessage("secondary_weapon");
-                            }
-
-                            else if (rs.getInt("is_gloves_eq") == 1)
-                            {
-                                //dos.writeBytes("gloves" + '\n');
-                                sendMessage("gloves");
-                            }
-
-                            else if (rs.getInt("is_left_gloves_eq") == 1)
-                            {
-                                //dos.writeBytes("left_gloves" + '\n');
-                                sendMessage("left_gloves");
-                            }
-
-                            else if (rs.getInt("is_right_gloves_eq") == 1)
-                            {
-                                //dos.writeBytes("right_gloves" + '\n');
-                                sendMessage("right_gloves");
-                            }
-
-                            else if (rs.getInt("is_shoes_eq") == 1)
-                            {
-                                //dos.writeBytes("shoes" + '\n');
-                                sendMessage("shoes");
-                            }
-
-                            else if (rs.getInt("is_greaves_eq") == 1)
-                            {
-                                //dos.writeBytes("greaves" + '\n');
-                                sendMessage("greaves");
-                            }
-
-                            else if (rs.getInt("is_left_greaves_eq") == 1)
-                            {
-                                //dos.writeBytes("left_greaves" + '\n');
-                                sendMessage("left_greaves");
-                            }
-
-                            else if (rs.getInt("is_right_greaves_eq") == 1)
-                            {
-                                //dos.writeBytes("right_greaves" + '\n');
-                                sendMessage("right_greaves");
-                            }
-
-                            else if (rs.getInt("is_magic_eq") == 1)
-                            {
-                                //dos.writeBytes("greaves" + '\n');
-                                sendMessage("magic");
-                            }
-
-                            else if (rs.getInt("is_other_eq") == 1)
-                            {
-                                //dos.writeBytes("greaves" + '\n');
-                                sendMessage("other");
-                            }
-
-                            else if (rs.getInt("is_arms_eq") == 1)
-                            {
-                                //dos.writeBytes("greaves" + '\n');
-                                sendMessage("arms");
-                            }
-
-                            else if (rs.getInt("is_legs_eq") == 1)
-                            {
-                                //dos.writeBytes("greaves" + '\n');
-                                sendMessage("legs");
-                            }
-
-                            else if (rs.getInt("is_ammo_eq") == 1)
-                            {
-                                //dos.writeBytes("greaves" + '\n');
-                                sendMessage("ammo");
-                            }
-
-
-                            sendMessage("N:" + rs.getString("nome"));
-                            //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
-
-                            sendMessage("D:" + rs.getString("descrizione"));
-                            //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
-
-                            image = rs.getBlob("foto");
-                            byte barr[] = image.getBytes(1,(int)image.length());
-                            sleep(150);
-                            dos.write(barr);
-
-                            //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
-
-                            sendMessage("V:" + rs.getString("valore"));
-                            //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
-
-
-
-
-                        }
-
-
-                    }
-                    else
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                }
-
-                else if (received.equals("get_equipment_from_category"))
-                {
-                    c_name = dis.readLine();
-
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
-
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
-
-                        number_items_b = 0;
-
-
-
-
-                        if(c_name.equals("head"))
-                        {
-                            ob_type = "is_head_eq";
-                        }
-                        else if (c_name.equals("torso"))
-                        {
-                            ob_type = "is_torso_eq";
-                        }
-
-                        else if (c_name.equals("left_arm"))
-                        {
-                            ob_type = "is_left_arm_eq";
-                        }
-
-                        else if (c_name.equals("right_arm"))
-                        {
-                            ob_type = "is_right_arm_eq";
-                        }
-
-                        else if (c_name.equals("left_leg"))
-                        {
-                            ob_type = "is_left_leg_eq";
-                        }
-
-                        else if (c_name.equals("right_leg"))
-                        {
-                            ob_type = "is_right_leg_eq";
-                        }
-
-                        else if (c_name.equals("first_weapon"))
-                        {
-                            ob_type = "is_first_weapon_eq";
-                        }
-
-                        else if (c_name.equals("secondary_weapon"))
-                        {
-                            ob_type = "is_secondary_weapon_eq";
-                        }
-
-                        else if (c_name.equals("gloves"))
-                        {
-                            ob_type = "is_gloves_eq";
-                        }
-
-                        else if (c_name.equals("left_gloves"))
-                        {
-                            ob_type = "is_left_gloves_eq";
-                        }
-
-                        else if (c_name.equals("right_gloves"))
-                        {
-                            ob_type = "is_right_gloves_eq";
-                        }
-
-                        else if (c_name.equals("shoes"))
-                        {
-                            ob_type = "is_shoes_eq";
-                        }
-
-                        else if (c_name.equals("greaves"))
-                        {
-                            ob_type = "is_greaves_eq";
-                        }
-
-                        else if (c_name.equals("left_greaves"))
-                        {
-                            ob_type = "is_left_greaves_eq";
-                        }
-
-                        else if (c_name.equals("right_greaves"))
-                        {
-                            ob_type = "is_right_greaves_eq";
-                        }
-
-                        else if (c_name.equals("magic"))
-                        {
-                            ob_type = "is_magic_eq";
-                        }
-
-                        else if (c_name.equals("other"))
-                        {
-                            ob_type = "is_other_eq";
-                        }
-
-                        else if (c_name.equals("arms"))
-                        {
-                            ob_type = "is_arms_eq";
-                        }
-
-                        else if (c_name.equals("legs"))
-                        {
-                            ob_type = "is_legs_eq";
-                        }
-
-                        else if (c_name.equals("ammo"))
-                        {
-                            ob_type = "is_ammo_eq";
-                        }
-
-
-                        else
-                        {
-                            ob_type = null;
-                        }
-
-
-                        rs = stmt.executeQuery("SELECT * from R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + character_id + " AND " + ob_type + " = 1");
-                        while (rs.next()) {
-
-                            number_items_b++;
-
-                        }
-
-
-                        sendMessage("NOB:" + Integer.toString(number_items_b));
-                        //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
-
-                        image = null;
-
-                        rs = stmt.executeQuery("SELECT * from R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + character_id + " AND " + ob_type + " = 1");
-                        while (rs.next()) {
-
-
-
-                            sendMessage("N:" + rs.getString("nome"));
-                            //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
-
-                            sendMessage("D:" + rs.getString("descrizione"));
-                            //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
-
-                            image = rs.getBlob("foto");
-                            byte barr[] = image.getBytes(1,(int)image.length());
-                            sleep(150);
-                            dos.write(barr);
-
-                            //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
-
-                            sendMessage("V:" + rs.getString("valore"));
-                            //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
-
-                        }
-
-
-                    }
-                    else
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                }
-
-
-                else if (received.equals("get_filtered_backpack"))
-                {
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
-
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
-
-                        number_items_b = 0;
-
-                        filter_item = dis.readLine(); //Mi prendo il filtro
-
-                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id INNER JOIN Categorie c ON c.id = o.id_categoria WHERE rpo.id_personaggio = " + character_id + " AND c.nome = '" + filter_item + "'");
-                        while (rs.next()) {
-
-                            number_items_b++;
-
-                        }
-
-                        sendMessage("NOB:" + Integer.toString(number_items_b));
-                        //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
-
-                        image = null;
-
-                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id INNER JOIN Categorie c ON c.id = o.id_categoria WHERE rpo.id_personaggio = " + character_id + " AND c.nome = '" + filter_item + "'");
-                        while (rs.next()) {
-
-                            sendMessage("N:" + rs.getString("nome"));
-                            //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
-
-                            sendMessage("D:" + rs.getString("descrizione"));
-                            //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
-
-                            image = rs.getBlob("foto");
-                            byte barr[] = image.getBytes(1,(int)image.length());
-                            sleep(150);
-                            dos.write(barr);
-
-                            //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
-
-                            sendMessage("V:" + rs.getString("valore"));
-                            //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
-
-                            sendMessage("Q:" + rs.getString("quantita"));
-                            //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
-
-
-                            sendMessage("RC:" + rs.getString("rarita_colore")); //Mando la rarita del colore
-
-                            sendMessage("PO:" + Float.toString(rs.getFloat("potenza"))); //Mando la potenza
-
-                            sendMessage("PE:" + Float.toString(rs.getFloat("peso"))); //Mando il peso
-
-                            sendMessage("DUR:" + Integer.toString(rs.getInt("durabilita"))); //Mando la potenza
-
-
-                        }
-
-
-                    }
-                    else
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                }
-
+                //CATEGORY
 
                 else if (received.equals("create_category"))
                 {
@@ -1693,6 +838,8 @@ class ClientHandler extends Thread
                         sendMessage("-1");
                         //dos.writeBytes("-1" + '\n');
                 }
+
+
 
                 //TRADING
                 else if (received.equals("trading_with"))
@@ -2254,91 +1401,57 @@ class ClientHandler extends Thread
                     //dos.writeBytes("-1" + '\n');
                 }
 
-                //Get quantity of object per character
-                //restituisce 1 perchè è entrato poi 1 se ha trovato l'oggetto sul character e lo restituisce poi -2 se non ha trovato l'oggetto e -1 se c'è errore
-                else if (received.equals("get_quantity_object"))
-                {
-                    trade_name_c = dis.readLine();
-
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
-
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n');
 
 
 
-                        find_trade = false;
-                        rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + character_id + " AND o.nome = '" + trade_name_c + "'");
-                        while (rs_temp.next()) {
-                            find_trade = true;
-                            quantity_items_1[0] = rs_temp.getInt("quantita");
-                        }
-
-                        if(find_trade)
-                        {
-                            sendMessage("1");
-                            //dos.writeBytes("1" + '\n');
-
-                            sendMessage("QI:" + Integer.toString(quantity_items_1[0]));
-                            //dos.writeBytes(Integer.toString(quantity_items_1[0]));
-                        }
-                        else
-                        {
-                            sendMessage("-2");
-                            //dos.writeBytes("-2" + '\n');
-                        }
-
-                    }
-                    else
-                        sendMessage("-1");
-                    //dos.writeBytes("-1" + '\n');
-                }
-
-
-                //Get quantity of object per un determinato character
-                //restituisce 1 perchè è entrato poi 1 se ha trovato l'oggetto sul character e lo restituisce poi -2 se non ha trovato l'oggetto e -1 se c'è errore
-                else if (received.equals("get_quantity_object_from_character"))
-                {
-                    c_name = dis.readLine();
-                    trade_name_c = dis.readLine();
-
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true) {
-
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n');
-
-
-
-
-                        find_trade = false;
-                        rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id INNER JOIN Personaggi p on p.id = rpo.id_personaggio WHERE p.nome = '" + c_name + "' AND o.nome = '" + trade_name_c + "'");
-                        while (rs_temp.next()) {
-                            find_trade = true;
-                            quantity_items_1[0] = rs_temp.getInt("quantita");
-                        }
-
-                        if(find_trade)
-                        {
-                            sendMessage("1");
-                            //dos.writeBytes("1" + '\n');
-
-                            sendMessage("QI:" + Integer.toString(quantity_items_1[0]));
-                            //dos.writeBytes(Integer.toString(quantity_items_1[0]));
-                        }
-                        else
-                        {
-                            sendMessage("-2");
-                            //dos.writeBytes("-2" + '\n');
-                        }
-
-                    }
-                    else
-                        sendMessage("-1");
-                    //dos.writeBytes("-1" + '\n');
-                }
-
+                //CHARACTER E PERSONAGGIO
 
                 //Creating new character
+                else if (received.equals("connect_character"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true) {
+                        id_passed_character = "";
+                        id_passed_character = dis.readLine();
+
+                        i = 0;
+                        rs = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.id_utente = " + client_id + " AND p.is_character = 1");
+                        while (rs.next()) {
+
+
+                            character_id = rs.getInt("id");
+
+                            if(i == Integer.parseInt(id_passed_character))
+                            {
+                                is_character_connected = true;
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            i++;
+
+                        }
+
+                    }
+                    else
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
+                }
+
+                else if (received.equals("disconnect_character"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
+                        character_id = 0;
+                        is_character_connected = false;
+
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n');
+
+                    }
+                    else
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
+                }
+
                 else if (received.equals("add_character"))
                 {
 
@@ -2360,6 +1473,7 @@ class ClientHandler extends Thread
                     character_sesso = dis.readLine();
                     character_colore_pelle = dis.readLine();
                     character_anno_nascita = Integer.parseInt(dis.readLine());
+                    character_classe = dis.readLine();
 
 
 
@@ -2389,7 +1503,7 @@ class ClientHandler extends Thread
 
                         else
                         {
-                            pstmt = conn.prepareStatement("INSERT INTO Personaggi " + "(nome, hp, biografia, razza, eta, peso, altezza, hp_max, id_sessione, id_utente, is_character, colore_capelli, colore_occhi, distinguersi_mark, cicatrici, tatuaggi, anno_nascita, luogo_nascita, sesso, colore_pelle /*Immagine*/ ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                            pstmt = conn.prepareStatement("INSERT INTO Personaggi " + "(nome, hp, biografia, razza, eta, peso, altezza, hp_max, id_sessione, id_utente, is_character, colore_capelli, colore_occhi, distinguersi_mark, cicatrici, tatuaggi, anno_nascita, luogo_nascita, sesso, colore_pelle, classe /*Immagine*/ ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
 
                             pstmt.setString(1, c_name);
@@ -2413,6 +1527,8 @@ class ClientHandler extends Thread
                             pstmt.setString(18, character_luogo_nascita);
                             pstmt.setString(19, character_sesso);
                             pstmt.setString(20, character_colore_pelle);
+
+                            pstmt.setString(21, character_classe);
 
                             //Inserimento foto
 
@@ -2454,6 +1570,7 @@ class ClientHandler extends Thread
                     character_sesso = dis.readLine();
                     character_colore_pelle = dis.readLine();
                     character_anno_nascita = Integer.parseInt(dis.readLine());
+                    character_classe = dis.readLine();
 
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
 
@@ -2481,7 +1598,7 @@ class ClientHandler extends Thread
 
                         else
                         {
-                            pstmt = conn.prepareStatement("INSERT INTO Personaggi " + "(nome, hp, biografia, razza, eta, peso, altezza, hp_max, id_sessione, id_utente, is_character, is_npc, is_riding_animal, is_enemy,  colore_capelli, colore_occhi, distinguersi_mark, cicatrici, tatuaggi, anno_nascita, luogo_nascita, sesso, colore_pelle /*Immagine*/ ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                            pstmt = conn.prepareStatement("INSERT INTO Personaggi " + "(nome, hp, biografia, razza, eta, peso, altezza, hp_max, id_sessione, id_utente, is_character, is_npc, is_riding_animal, is_enemy,  colore_capelli, colore_occhi, distinguersi_mark, cicatrici, tatuaggi, anno_nascita, luogo_nascita, sesso, colore_pelle, classe /*Immagine*/ ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
 
                             variable_return = "1";
@@ -2549,6 +1666,7 @@ class ClientHandler extends Thread
                             pstmt.setString(21, character_luogo_nascita);
                             pstmt.setString(22, character_sesso);
                             pstmt.setString(23, character_colore_pelle);
+                            pstmt.setString(24, character_classe);
 
                             pstmt.execute();
                             pstmt.close(); // rilascio le risorse
@@ -2562,1255 +1680,6 @@ class ClientHandler extends Thread
                         sendMessage("-1");
                     //dos.writeBytes("-1" + '\n');
                 }
-
-
-                //Creating session
-                else if (received.equals("create_session"))
-                {
-                    s_titolo = dis.readLine();
-                    s_sottotitolo = dis.readLine();
-
-                    if(is_disconnect == false && is_connect == true)
-                    {
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n');
-
-
-
-                        find_trade = false;
-                        rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.titolo = '" + s_titolo + "'");
-                        while (rs_temp.next()) {
-                            find_trade = true;
-                        }
-
-                        if(find_trade == false)
-                        {
-                            find_category = false;
-
-                            do
-                            {
-                                s_codice_invito = (int)((Math.random()*((9999-1000)+1))+1000);
-
-
-                                find_category = false;
-                                rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.codice_invito = " + s_codice_invito);
-                                while (rs_temp.next()) {
-                                    find_category = true;
-                                }
-
-
-
-                            }
-                            while(find_category == true);
-
-
-                            pstmt = conn.prepareStatement("INSERT INTO Sessioni " + "(titolo, sottotitolo, codice_invito, id_host) values (?,?,?,?)");
-                            pstmt.setString(1, s_titolo);
-                            pstmt.setString(2, s_sottotitolo);
-                            pstmt.setInt(3, s_codice_invito);
-                            pstmt.setInt(4, client_id);
-                            pstmt.execute();
-                            pstmt.close(); // rilascio le risorse
-
-                            sendMessage("1");
-                            //dos.writeBytes("1" + '\n');
-
-                            sendMessage(Integer.toString(s_codice_invito));
-                            //dos.writeBytes(Integer.toString(s_codice_invito) + '\n');
-
-                        }
-
-                        else
-                        {
-                            sendMessage("-2");
-                            //dos.writeBytes("-2" + '\n');
-                        }
-
-                    }
-                    else
-                    {
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                    }
-                }
-
-
-                //Add session
-                else if (received.equals("add_session"))
-                {
-                    s_codice_invito = Integer.parseInt(dis.readLine());
-
-                    if(is_disconnect == false && is_connect == true)
-                    {
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n');
-
-                        find_trade = false;
-                        rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.codice_invito = " + s_codice_invito);
-                        while (rs_temp.next()) {
-                            find_trade = true;
-                            send_id = rs_temp.getInt("id");
-                        }
-
-                        if(find_trade == true)
-                        {
-
-                            rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.id = " + send_id);
-                            while (rs_temp.next()) {
-
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-
-                                //Inserimento nella tabella relazione con sessione e utente
-                                pstmt = conn.prepareStatement("INSERT INTO R_Utente_Sessione " + "(id_utente, id_sessione) values (?,?)");
-
-                                pstmt.setInt(1, client_id);
-                                pstmt.setInt(2, send_id);
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-
-
-                                //Invio del titolo
-                                sendMessage("T:" + rs_temp.getString("titolo"));
-                                //dos.writeBytes(rs_temp.getString("titolo") + '\n');
-
-                                //Invio del sottotitolo
-                                sendMessage("S:" + rs_temp.getString("sottotitolo"));
-                                //dos.writeBytes(rs_temp.getString("sottotitolo") + '\n');
-
-
-                                //Calcolo ed invio degli utenti online per quella sessione
-                                number_user_online_session = 0;
-                                rs = stmt.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE u.stato_login = 1 AND rus.id_sessione = " + send_id);
-                                while (rs.next()) {
-                                    number_user_online_session++;
-                                }
-
-                                sendMessage("NUO:" + Integer.toString(number_user_online_session));
-                                //dos.writeBytes(Integer.toString(number_user_online_session) + '\n');
-
-
-
-
-                            }
-
-
-                        }
-
-                        else
-                        {
-                            sendMessage("-2");
-                            //dos.writeBytes("-2" + '\n');
-                        }
-
-
-
-                    }
-                    else
-                    {
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                    }
-                }
-
-
-                //Adding object to equipment
-                else if (received.equals("add_object_equipment"))
-                {
-                    c_name = dis.readLine();
-                    what_character = dis.readLine();
-
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true)
-                    {
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
-
-                        find_category = false;
-
-
-                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on o.id = rpo.id_oggetto INNER JOIN Personaggio p on p.id = rpo.id_personaggio WHERE p.id_sessione = " + session_id + " AND p.id = " + character_id + " AND o.nome = '" + c_name + "'");
-                        while (rs.next())
-                        {
-                            if(c_name.equals(rs.getString("o.nome"))) {
-                                find_category = true;
-                                send_id = rs.getInt("o.id");
-                            }
-                        }
-
-
-                        if(find_category == true)
-                        {
-                            pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_head_eq = '0', is_torso_eq = '0', is_left_arm_eq = '0', is_right_arm_eq = '0', is_left_leg_eq = '0', is_right_leg_eq = '0', is_first_weapon_eq = '0', is_secondary_weapon_eq = '0', is_gloves_eq = '0', is_left_gloves_eq = '0', is_right_gloves_eq = '0', is_shoes_eq = '0', is_greaves_eq = '0', is_left_greaves_eq = '0', is_right_greaves_eq = '0' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
-                            pstmt.execute();
-                            pstmt.close();
-
-
-                            if(what_character.equals("head"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_head_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
-                            }
-
-                            else if(what_character.equals("torso"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_torso_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
-                            }
-
-                            else if(what_character.equals("left_arm"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_left_arm_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
-                            }
-
-                            else if(what_character.equals("right_arm"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_right_arm_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
-                            }
-
-                            else if(what_character.equals("left_leg"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_left_leg_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
-                            }
-
-                            else if(what_character.equals("right_leg"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_right_leg_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
-                            }
-
-                            else if(what_character.equals("first_weapon"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_first_weapon_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
-                            }
-
-                            else if(what_character.equals("secondary_weapon"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_secondary_weapon_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
-                            }
-
-                            else if(what_character.equals("gloves"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_gloves_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
-                            }
-
-                            else if(what_character.equals("left_gloves"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_left_gloves_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
-                            }
-
-                            else if(what_character.equals("right_gloves"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_right_gloves_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
-                            }
-
-                            else if(what_character.equals("shoes"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_shoes_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
-                            }
-
-                            else if(what_character.equals("greaves"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_greaves_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
-                            }
-
-                            else if(what_character.equals("left_greaves"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_left_greaves_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
-                            }
-
-                            else if(what_character.equals("right_greaves"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_right_greaves_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
-                            }
-
-                            else if(what_character.equals("arms"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_arms_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
-                            }
-
-                            else if(what_character.equals("legs"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_legs_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
-                            }
-
-                            else if(what_character.equals("ammo"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_ammo_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
-                            }
-
-                            pstmt.execute();
-                            pstmt.close(); // rilascio le risorse
-
-                            sendMessage("1");
-                            //dos.writeBytes("1" + '\n');
-
-                        }
-                        else
-                        {
-                            sendMessage("-2");
-                            //dos.writeBytes("-2" + '\n');
-                        }
-
-                    }
-                    else
-                    {
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                    }
-                }
-
-
-                //Update hp of character
-                else if (received.equals("update_hp"))
-                {
-                    character_nome = dis.readLine();
-                    character_hp = Integer.parseInt(dis.readLine());
-
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
-                    {
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
-
-                        find_category = false;
-
-                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + character_nome + "'");
-                        while (rs.next())
-                        {
-
-                            if(character_nome.equals(rs.getString("nome"))) {
-                                find_category = true;
-                                send_id = rs.getInt("id");
-                            }
-                        }
-
-                        if(find_category == true)
-                        {
-                            pstmt = conn.prepareStatement("UPDATE Personaggi SET hp = " + character_hp + " where Personaggi.id = " + send_id);
-                            pstmt.execute();
-                            pstmt.close(); // rilascio le risorse
-
-                            sendMessage("1");
-                            //dos.writeBytes("1" + '\n');
-
-                        }
-                        else
-                        {
-                            sendMessage("-2");
-                            //dos.writeBytes("-2" + '\n');
-                        }
-
-                    }
-                    else
-                    {
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                    }
-                }
-
-
-                //Update hp_max of character
-                else if (received.equals("update_hp_max"))
-                {
-                    character_nome = dis.readLine();
-                    character_hp_max = Integer.parseInt(dis.readLine());
-
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
-                    {
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
-
-                        find_category = false;
-
-
-                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + character_nome + "'");
-                        while (rs.next())
-                        {
-
-                            if(character_nome.equals(rs.getString("nome"))) {
-                                find_category = true;
-                                send_id = rs.getInt("id");
-                            }
-                        }
-
-                        if(find_category == true)
-                        {
-                            pstmt = conn.prepareStatement("UPDATE Personaggi SET hp_max = " + character_hp_max + " where Personaggi.id = " + send_id);
-                            pstmt.execute();
-                            pstmt.close(); // rilascio le risorse
-
-                            sendMessage("1");
-                            //dos.writeBytes("1" + '\n');
-
-                        }
-                        else
-                        {
-                            sendMessage("-2");
-                            //dos.writeBytes("-2" + '\n');
-                        }
-
-                    }
-                    else
-                    {
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                    }
-                }
-
-
-                //Unlock trading
-                else if (received.equals("unlock_trading"))
-                {
-                    character_nome = dis.readLine();
-
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
-                    {
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
-
-                        find_category = false;
-
-
-                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + character_nome + "'");
-                        while (rs.next())
-                        {
-
-                            if(character_nome.equals(rs.getString("nome"))) {
-                                find_category = true;
-                                send_id = rs.getInt("id");
-                            }
-                        }
-
-                        if(find_category == true)
-                        {
-                            pstmt = conn.prepareStatement("UPDATE Personaggi SET is_trading_enabled = '1' where Personaggi.id = " + send_id);
-                            pstmt.execute();
-                            pstmt.close(); // rilascio le risorse
-
-                            sendMessage("1");
-                            //dos.writeBytes("1" + '\n');
-
-                        }
-                        else
-                        {
-                            sendMessage("-2");
-                            //dos.writeBytes("-2" + '\n');
-                        }
-
-                    }
-                    else
-                    {
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                    }
-                }
-
-
-                //Lock trading
-                else if (received.equals("lock_trading"))
-                {
-                    character_nome = dis.readLine();
-
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
-                    {
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
-
-                        find_category = false;
-
-                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + character_nome + "'");
-                        while (rs.next())
-                        {
-
-                            if(character_nome.equals(rs.getString("nome"))) {
-                                find_category = true;
-                                send_id = rs.getInt("id");
-                            }
-                        }
-
-                        if(find_category == true)
-                        {
-                            pstmt = conn.prepareStatement("UPDATE Personaggi SET is_trading_enabled = '0' where Personaggi.id = " + send_id);
-                            pstmt.execute();
-                            pstmt.close(); // rilascio le risorse
-
-                            sendMessage("1");
-                            //dos.writeBytes("1" + '\n');
-
-                        }
-                        else
-                        {
-                            sendMessage("-2");
-                            //dos.writeBytes("-2" + '\n');
-                        }
-
-                    }
-                    else
-                    {
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                    }
-                }
-
-
-                // Game master
-
-                //Avaiable lista di equipaggiamenti di oggetti non equipaggiati
-
-
-                //Show all items of that session
-                else if (received.equals("show_items_session"))
-                {
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
-
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
-
-                        number_items_b = 0;
-
-                        rs = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_sessione = " + session_id);
-                        while (rs.next()) {
-                            number_items_b++;
-                        }
-
-                        sendMessage("NOB:" + Integer.toString(number_items_b));
-                        //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
-
-                        image = null;
-
-                        rs = stmt.executeQuery("SELECT * from Oggetti o WHERE rpo.id_sessione = " + session_id);
-                        while (rs.next()) {
-
-                            sendMessage("N:" + rs.getString("nome"));
-                            //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
-
-                            sendMessage("D:" + rs.getString("descrizione"));
-                            //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
-
-                            image = rs.getBlob("foto");
-                            byte barr[] = image.getBytes(1,(int)image.length());
-                            sleep(150);
-                            dos.write(barr);
-
-                            //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
-
-                            sendMessage("V:" + rs.getString("valore"));
-                            //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
-
-                            sendMessage("Q:" + rs.getString("quantita"));
-                            //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
-
-
-                            sendMessage("RC:" + rs.getString("rarita_colore")); //Mando la rarita del colore
-
-                            sendMessage("PO:" + Float.toString(rs.getFloat("potenza"))); //Mando la potenza
-
-                            sendMessage("PE:" + Float.toString(rs.getFloat("peso"))); //Mando il peso
-
-                            sendMessage("DUR:" + Integer.toString(rs.getInt("durabilita"))); //Mando la durabilita
-                        }
-
-
-                    }
-                    else
-                        sendMessage("-1");
-                    //dos.writeBytes("-1" + '\n');
-                }
-
-
-                //Update punti skill // DA non fare adesso
-
-                //Show all monsters
-
-                //Show all npcs
-
-                //Show all characters
-
-                //Show all transport
-
-
-                //Remove object from character
-                else if (received.equals("remove_object_character"))
-                {
-                    o_nome = dis.readLine(); //Mi prendo il nome dell'oggetto
-                    ob_quantity = Integer.parseInt(dis.readLine());
-
-
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
-
-
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
-
-                        find_object = false;
-
-
-                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + character_id + " AND o.id_sessione = " + session_id + " AND o.nome = '" + o_nome + "'");
-                        while (rs.next()) {
-
-                            find_object = true;
-                            ob_id = rs.getInt("o.id");
-                        }
-
-
-                        if(find_object == false)
-                        {
-                            sendMessage("-2");
-                            //dos.writeBytes("-2" + '\n');
-                        }
-
-                        else
-                        {
-                            pstmt = conn.prepareStatement("DELETE FROM R_Personaggio_Oggetto WHERE id_personaggio = ? AND id_oggetto = ?");
-                            pstmt.setInt(1, character_id);
-                            pstmt.setInt(2, ob_id);
-                            pstmt.execute();
-                            pstmt.close(); // rilascio le risorse
-                            sendMessage("1");
-                            //dos.writeBytes("1" + '\n');
-                        }
-
-                    }
-                    else
-                        sendMessage("-1");
-                    //dos.writeBytes("-1" + '\n');
-                }
-
-
-                else if (received.equals("update_session_data"))
-                {
-                    o_nome = dis.readLine();
-                    ob_type = dis.readLine();
-                    ob_data = dis.readLine();
-
-
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
-                    {
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
-
-                        find_category = false;
-
-                        rs = stmt.executeQuery("SELECT * from Sessioni p WHERE p.titolo = '" + o_nome + "' AND p.id_host = " + client_id);
-                        while (rs.next())
-                        {
-                            if(o_nome.equals(rs.getString("nome"))) {
-                                find_category = true;
-                                send_id = rs.getInt("id");
-                            }
-                        }
-
-                        if(find_category == true)
-                        {
-                            if(ob_type.equals("titolo"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Sessioni SET titolo = '" + ob_data + "' where Sessioni.id = " + send_id);
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("sottotitolo"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Sessioni SET sottotitolo = '" + ob_data + "' where Sessioni.id = " + send_id);
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("codice_invito"))
-                            {
-
-                                find_category = false;
-
-                                do
-                                {
-                                    s_codice_invito = (int)((Math.random()*((9999-1000)+1))+1000);
-
-                                    find_category = false;
-                                    rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.codice_invito = " + s_codice_invito);
-                                    while (rs_temp.next()) {
-                                        find_category = true;
-                                    }
-
-                                }
-                                while(find_category == true);
-
-
-                                pstmt = conn.prepareStatement("UPDATE Sessioni SET codice_invito = '" + s_codice_invito + "' where Sessioni.id = " + send_id);
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage(Integer.toString(s_codice_invito));
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-
-                            //UPDATE FOTO
-
-                            else
-                            {
-                                sendMessage("-3");
-                                //dos.writeBytes("-3" + '\n');
-                            }
-
-                        }
-                        else
-                        {
-                            sendMessage("-2");
-                            //dos.writeBytes("-2" + '\n');
-                        }
-
-                    }
-                    else
-                    {
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                    }
-                }
-
-
-                //DA CAMBIARE
-                else if (received.equals("get_category_data"))
-                {
-                    o_nome = dis.readLine();
-                    ob_type = dis.readLine();
-
-
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true)
-                    {
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
-
-                        find_category = false;
-
-
-                        rs = stmt.executeQuery("SELECT * from Categorie p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + o_nome + "'");
-                        while (rs.next())
-                        {
-                            if(o_nome.equals(rs.getString("nome"))) {
-                                find_category = true;
-                                send_id = rs.getInt("id");
-                            }
-                        }
-
-                        if(find_category == true)
-                        {
-
-                            rs = stmt.executeQuery("SELECT * from Categorie p WHERE p.id_sessione = " + session_id + " AND p.id = " + send_id);
-                            while (rs.next())
-                            {
-
-                                if(ob_type.equals("descrizione"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(rs.getString("descrizione"));
-                                    //dos.writeBytes(rs.getString("descrizione") + '\n');
-                                }
-
-                                else if(ob_type.equals("tipo_potenza"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(rs.getString("descrizione"));
-                                    //dos.writeBytes(rs.getString("tipo_potenza") + '\n');
-                                }
-
-
-                                //GET FOTO
-
-
-                                else if(ob_type.equals("head"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_head_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_head_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("torso"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_torso_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_torso_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("left_arm"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_left_arm_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_left_arm_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("right_arm"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_right_arm_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_right_arm_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("left_leg"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_left_leg_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_left_leg_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("right_leg"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_right_leg_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_right_leg_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("first_weapon"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_first_weapon_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_first_weapon_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("secondary_weapon"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_secondary_weapon_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_secondary_weapon_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("gloves"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_gloves_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_gloves_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("left_gloves"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_left_gloves_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_left_gloves_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("right_gloves"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_right_gloves_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_right_gloves_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("shoes"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_shoes_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_shoes_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("greaves"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_greaves_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_greaves_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("left_greaves"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_left_greaves_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_left_greaves_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("right_greaves"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_right_greaves_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_right_greaves_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("magic"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_magic_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_magic_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("other"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_other_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_other_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("arms"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_arms_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_arms_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("legs"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_legs_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_legs_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("ammo"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("is_ammo_eq")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("is_ammo_eq")) + '\n');
-                                }
-
-                                else if(ob_type.equals("numero_slot"))
-                                {
-                                    sendMessage("1");
-                                    //dos.writeBytes("1" + '\n');
-
-                                    sendMessage(Integer.toString(rs.getInt("numero_slot")));
-                                    //dos.writeBytes(Integer.toString(rs.getInt("numero_slot")) + '\n');
-                                }
-
-                                else
-                                {
-                                    sendMessage("-3");
-                                    //dos.writeBytes("-3" + '\n');
-                                }
-                            }
-
-
-
-                        }
-                        else
-                        {
-                            sendMessage("-2");
-                            //dos.writeBytes("-2" + '\n');
-                        }
-
-                    }
-                    else
-                    {
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                    }
-                }
-
-
-                else if (received.equals("update_category_data"))
-                {
-                    o_nome = dis.readLine();
-                    ob_type = dis.readLine();
-                    ob_data = dis.readLine();
-
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
-                    {
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
-
-                        find_category = false;
-
-
-
-
-                        rs = stmt.executeQuery("SELECT * from Categorie p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + o_nome + "'");
-                        while (rs.next())
-                        {
-                            if(o_nome.equals(rs.getString("nome"))) {
-                                find_category = true;
-                                send_id = rs.getInt("id");
-                            }
-                        }
-
-                        if(find_category == true)
-                        {
-                            if(ob_type.equals("nome"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET nome = '" + ob_data + "' where Categorie.id = " + send_id);
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("descrizione"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET descrizione = '" + ob_data + "' where Categorie.id = " + send_id);
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("tipo_potenza"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET tipo_potenza = '" + ob_data + "' where Categorie.id = " + send_id);
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("head"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_head_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("torso"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_torso_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("left_arm"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_arm_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("right_arm"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_arm_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("left_leg"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_leg_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("right_leg"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_leg_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("first_weapon"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_first_weapon_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("secondary_weapon"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_secondary_weapon_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("gloves"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_gloves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("left_gloves"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_gloves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("right_gloves"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_gloves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("shoes"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_shoes_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("greaves"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_greaves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("left_greaves"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_greaves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("right_greaves"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_greaves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("magic"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_magic_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("other"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_other_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("arms"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_arms_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("legs"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_legs_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("ammo"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_ammo_eq = '1' WHERE Categorie.id = '" + send_id + "'");
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-                            else if(ob_type.equals("numero_slot"))
-                            {
-                                pstmt = conn.prepareStatement("UPDATE Categorie SET numero_slot = '" + Integer.parseInt(ob_data) + "' where Categorie.id = " + send_id);
-                                pstmt.execute();
-                                pstmt.close(); // rilascio le risorse
-                                sendMessage("1");
-                                //dos.writeBytes("1" + '\n');
-                            }
-
-
-
-                            //UPDATE FOTO
-
-                            else
-                            {
-                                sendMessage("-3");
-                                //dos.writeBytes("-3" + '\n');
-                            }
-
-                        }
-                        else
-                        {
-                            sendMessage("-2");
-                            //dos.writeBytes("-2" + '\n');
-                        }
-
-                    }
-                    else
-                    {
-                        sendMessage("-1");
-                        //dos.writeBytes("-1" + '\n');
-                    }
-                }
-
-                /*
-
-                Nella sezione armi se equipaggio una categoria non posso equipaggiare altre
-
-                -Numero di equipaggiabili per ogni layer categoria
-
-                 */
-
-                //Update character data
 
                 else if (received.equals("get_personaggi_data"))
                 {
@@ -4112,6 +1981,22 @@ class ClientHandler extends Thread
                                     //dos.writeBytes( Integer.toString(rs.getInt("slot_ammo")) + '\n');
                                 }
 
+                                else if(ob_type.equals("slot_shield"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("slot_shield")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("slot_ammo")) + '\n');
+                                }
+
+                                else if(ob_type.equals("peso_max"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("peso_max")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("slot_ammo")) + '\n');
+                                }
+
                                 else
                                 {
                                     sendMessage("-3");
@@ -4145,7 +2030,7 @@ class ClientHandler extends Thread
 
 
 
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true)
                     {
                         sendMessage("1");
                         //dos.writeBytes("1" + '\n'); // Restituisco la conferma
@@ -4482,6 +2367,24 @@ class ClientHandler extends Thread
                                 //dos.writeBytes("1" + '\n');
                             }
 
+                            else if(ob_type.equals("slot_shield"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET slot_shield = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("peso_max"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET peso_max = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
                             else
                             {
                                 sendMessage("-3");
@@ -4503,6 +2406,2267 @@ class ClientHandler extends Thread
                     }
                 }
 
+                //Update hp of character
+                else if (received.equals("update_hp"))
+                {
+                    character_nome = dis.readLine();
+                    character_hp = Integer.parseInt(dis.readLine());
+
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
+                    {
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = false;
+
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + character_nome + "'");
+                        while (rs.next())
+                        {
+
+                            if(character_nome.equals(rs.getString("nome"))) {
+                                find_category = true;
+                                send_id = rs.getInt("id");
+                            }
+                        }
+
+                        if(find_category == true)
+                        {
+                            pstmt = conn.prepareStatement("UPDATE Personaggi SET hp = " + character_hp + " where Personaggi.id = " + send_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
+
+                        }
+                        else
+                        {
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                    {
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
+                    }
+                }
+
+
+                //Update hp_max of character
+                else if (received.equals("update_hp_max"))
+                {
+                    character_nome = dis.readLine();
+                    character_hp_max = Integer.parseInt(dis.readLine());
+
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
+                    {
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = false;
+
+
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + character_nome + "'");
+                        while (rs.next())
+                        {
+
+                            if(character_nome.equals(rs.getString("nome"))) {
+                                find_category = true;
+                                send_id = rs.getInt("id");
+                            }
+                        }
+
+                        if(find_category == true)
+                        {
+                            pstmt = conn.prepareStatement("UPDATE Personaggi SET hp_max = " + character_hp_max + " where Personaggi.id = " + send_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
+
+                        }
+                        else
+                        {
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                    {
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
+                    }
+                }
+
+                else if (received.equals("get_peso"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true) {
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        ch_peso = 0;
+
+                        find_category = false;
+
+                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id INNER JOIN Personaggi p on p.id = rpo.id_personaggio WHERE o.id_sessione = " + session_id + " AND p.id = '" + character_id + "'");
+                        while (rs.next()) {
+                            find_category = true;
+
+                            ch_peso = ch_peso + (rs.getFloat("peso") * rs.getInt("quantita"));
+                        }
+
+                        if (find_category == true) {
+                            sendMessage(Float.toString(ch_peso));
+                        }
+                        else
+                        {
+                            sendMessage("-2");
+                        }
+                    }
+                    else
+                        sendMessage("-1");
+
+                }
+
+                else if (received.equals("get_backpack"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
+
+
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        number_items_b = 0;
+
+                        rs = stmt.executeQuery("SELECT * from R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + character_id);
+                        while (rs.next()) {
+
+                            number_items_b++;
+
+                        }
+
+                        sendMessage("NOB:" + Integer.toString(number_items_b));
+                        //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
+
+                        image = null;
+
+                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + character_id);
+                        while (rs.next()) {
+
+                            sendMessage("N:" + rs.getString("nome"));
+                            //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
+
+                            sendMessage("D:" + rs.getString("descrizione"));
+                            //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
+
+                            image = rs.getBlob("foto");
+                            byte barr[] = image.getBytes(1,(int)image.length());
+                            sleep(150);
+                            dos.write(barr);
+
+                            //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
+
+                            sendMessage("V:" + rs.getString("valore"));
+                            //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+                            sendMessage("Q:" + rs.getString("quantita"));
+                            //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
+
+
+
+                            sendMessage("RC:" + rs.getString("rarita_colore")); //Mando la rarita del colore
+
+                            sendMessage("PO:" + Float.toString(rs.getFloat("potenza"))); //Mando la potenza
+
+                            sendMessage("PE:" + Float.toString(rs.getFloat("peso"))); //Mando il peso
+
+                            sendMessage("DUR:" + Integer.toString(rs.getInt("durabilita"))); //Mando la potenza
+
+
+                        }
+
+
+                    }
+                    else
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
+                }
+
+
+                else if (received.equals("get_user_backpack")) // DA CAMBIARE
+                {
+                    filter_item = dis.readLine(); //Mi prendo l'id dell'utente
+
+                    send_id = Integer.parseInt(filter_item);
+
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
+
+
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+
+                        number_items_b = 0;
+
+                        rs = stmt.executeQuery("SELECT * from R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + send_id);
+                        while (rs.next()) {
+
+                            number_items_b++;
+
+                        }
+
+                        sendMessage("NOB:" + Integer.toString(number_items_b));
+                        //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
+
+                        image = null;
+
+                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + send_id);
+                        while (rs.next()) {
+
+                            sendMessage("N:" + rs.getString("nome"));
+                            //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
+
+                            sendMessage("D:" + rs.getString("descrizione"));
+                            //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
+
+                            image = rs.getBlob("foto");
+                            byte barr[] = image.getBytes(1,(int)image.length());
+                            sleep(150);
+                            dos.write(barr);
+
+                            //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
+
+                            sendMessage("V:" + rs.getString("valore"));
+                            //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+                            sendMessage("Q:" + rs.getString("quantita"));
+                            //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
+
+                            sendMessage("RC:" + rs.getString("rarita_colore")); //Mando la rarita del colore
+
+                            sendMessage("PO:" + Float.toString(rs.getFloat("potenza"))); //Mando la potenza
+
+                            sendMessage("PE:" + Float.toString(rs.getFloat("peso"))); //Mando il peso
+
+                            sendMessage("DUR:" + Integer.toString(rs.getInt("durabilita"))); //Mando la potenza
+                        }
+
+
+                    }
+                    else
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
+                }
+
+                else if (received.equals("get_character_backpack"))
+                {
+                    filter_item = dis.readLine(); //Mi prendo il nome del character
+
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
+
+
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+
+
+                        find_character = false;
+
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.nome = '" + filter_item + "' AND p.is_character = 1 AND p.id_sessione = " + session_id);
+                        while (rs.next()) {
+                            find_character = true;
+                            send_id = rs.getInt("id");
+                        }
+
+
+                        number_items_b = 0;
+
+                        if(find_character == true)
+                        {
+
+                            rs = stmt.executeQuery("SELECT * from R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + send_id);
+                            while (rs.next()) {
+
+                                number_items_b++;
+
+                            }
+
+                            sendMessage("NOB:" + Integer.toString(number_items_b));
+                            //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
+
+                            image = null;
+
+                            rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + send_id);
+                            while (rs.next()) {
+
+                                sendMessage("N:" + rs.getString("nome"));
+                                //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
+
+                                sendMessage("D:" + rs.getString("descrizione"));
+                                //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
+
+                                image = rs.getBlob("foto");
+                                byte barr[] = image.getBytes(1,(int)image.length());
+                                sleep(150);
+                                dos.write(barr);
+
+                                //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
+
+                                sendMessage("V:" + rs.getString("valore"));
+                                //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+                                sendMessage("Q:" + rs.getString("quantita"));
+                                //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
+                            }
+                        }
+                        else
+                            sendMessage("-2");
+                        //dos.writeBytes("-2" + '\n');
+
+                    }
+                    else
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
+                }
+
+                else if (received.equals("get_filtered_backpack"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
+
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        number_items_b = 0;
+
+                        filter_item = dis.readLine(); //Mi prendo il filtro
+
+                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id INNER JOIN Categorie c ON c.id = o.id_categoria WHERE rpo.id_personaggio = " + character_id + " AND c.nome = '" + filter_item + "'");
+                        while (rs.next()) {
+
+                            number_items_b++;
+
+                        }
+
+                        sendMessage("NOB:" + Integer.toString(number_items_b));
+                        //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
+
+                        image = null;
+
+                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id INNER JOIN Categorie c ON c.id = o.id_categoria WHERE rpo.id_personaggio = " + character_id + " AND c.nome = '" + filter_item + "'");
+                        while (rs.next()) {
+
+                            sendMessage("N:" + rs.getString("nome"));
+                            //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
+
+                            sendMessage("D:" + rs.getString("descrizione"));
+                            //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
+
+                            image = rs.getBlob("foto");
+                            byte barr[] = image.getBytes(1,(int)image.length());
+                            sleep(150);
+                            dos.write(barr);
+
+                            //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
+
+                            sendMessage("V:" + rs.getString("valore"));
+                            //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+                            sendMessage("Q:" + rs.getString("quantita"));
+                            //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
+
+
+                            sendMessage("RC:" + rs.getString("rarita_colore")); //Mando la rarita del colore
+
+                            sendMessage("PO:" + Float.toString(rs.getFloat("potenza"))); //Mando la potenza
+
+                            sendMessage("PE:" + Float.toString(rs.getFloat("peso"))); //Mando il peso
+
+                            sendMessage("DUR:" + Integer.toString(rs.getInt("durabilita"))); //Mando la potenza
+
+
+                        }
+
+
+                    }
+                    else
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
+                }
+
+                //Get quantity of object per character
+                //restituisce 1 perchè è entrato poi 1 se ha trovato l'oggetto sul character e lo restituisce poi -2 se non ha trovato l'oggetto e -1 se c'è errore
+                else if (received.equals("get_quantity_object"))
+                {
+                    trade_name_c = dis.readLine();
+
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
+
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n');
+
+
+
+                        find_trade = false;
+                        rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + character_id + " AND o.nome = '" + trade_name_c + "'");
+                        while (rs_temp.next()) {
+                            find_trade = true;
+                            quantity_items_1[0] = rs_temp.getInt("quantita");
+                        }
+
+                        if(find_trade)
+                        {
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
+
+                            sendMessage("QI:" + Integer.toString(quantity_items_1[0]));
+                            //dos.writeBytes(Integer.toString(quantity_items_1[0]));
+                        }
+                        else
+                        {
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
+                }
+
+
+                //Get quantity of object per un determinato character
+                //restituisce 1 perchè è entrato poi 1 se ha trovato l'oggetto sul character e lo restituisce poi -2 se non ha trovato l'oggetto e -1 se c'è errore
+                else if (received.equals("get_quantity_object_from_character"))
+                {
+                    c_name = dis.readLine();
+                    trade_name_c = dis.readLine();
+
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true) {
+
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n');
+
+
+
+
+                        find_trade = false;
+                        rs_temp = stmt.executeQuery("SELECT * FROM R_Personaggio_Oggetto rpo INNER JOIN Oggetti o on rpo.id_oggetto = o.id INNER JOIN Personaggi p on p.id = rpo.id_personaggio WHERE p.nome = '" + c_name + "' AND o.nome = '" + trade_name_c + "'");
+                        while (rs_temp.next()) {
+                            find_trade = true;
+                            quantity_items_1[0] = rs_temp.getInt("quantita");
+                        }
+
+                        if(find_trade)
+                        {
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
+
+                            sendMessage("QI:" + Integer.toString(quantity_items_1[0]));
+                            //dos.writeBytes(Integer.toString(quantity_items_1[0]));
+                        }
+                        else
+                        {
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
+                }
+
+                //EQUIPMENT
+
+                else if (received.equals("get_equipment"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
+
+
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        number_items_b = 0;
+
+                        rs = stmt.executeQuery("SELECT * from R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + character_id + " AND (is_head_eq = 1 OR is_torso_eq = 1 OR is_left_arm_eq = 1 OR is_right_arm_eq = 1 OR is_left_leg_eq = 1 OR is_right_leg_eq = 1 OR is_first_weapon_eq = 1 OR is_secondary_weapon_eq = 1 OR is_gloves_eq = 1 OR is_left_gloves_eq = 1 OR is_right_gloves_eq = 1 OR is_shoes_eq = 1 OR is_greaves_eq = 1 OR is_left_greaves_eq = 1 OR is_right_greaves_eq = 1 OR is_arms_eq = 1 OR is_legs_eq = 1 OR is_ammo_eq = 1 OR is_other_eq = 1 OR is_magic_eq = 1 OR is_shield_eq = 1)");
+                        while (rs.next()) {
+
+                            number_items_b++;
+
+                        }
+
+                        sendMessage("NOB:" + Integer.toString(number_items_b));
+                        //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
+
+                        image = null;
+
+                        rs = stmt.executeQuery("SELECT * from R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + character_id + " AND (is_head_eq = 1 OR is_torso_eq = 1 OR is_left_arm_eq = 1 OR is_right_arm_eq = 1 OR is_left_leg_eq = 1 OR is_right_leg_eq = 1 OR is_first_weapon_eq = 1 OR is_secondary_weapon_eq = 1 OR is_gloves_eq = 1 OR is_left_gloves_eq = 1 OR is_right_gloves_eq = 1 OR is_shoes_eq = 1 OR is_greaves_eq = 1 OR is_left_greaves_eq = 1 OR is_right_greaves_eq = 1 OR is_arms_eq = 1 OR is_legs_eq = 1 OR is_ammo_eq = 1 OR is_other_eq = 1 OR is_magic_eq = 1 OR is_shield_eq = 1)");
+                        while (rs.next()) {
+
+                            if(rs.getInt("is_head_eq") == 1)
+                            {
+                                sendMessage("head");
+                                //dos.writeBytes("head" + '\n');
+
+                            }
+                            else if (rs.getInt("is_torso_eq") == 1)
+                            {
+                                //dos.writeBytes("torso" + '\n');
+                                sendMessage("torso");
+                            }
+
+                            else if (rs.getInt("is_left_arm_eq") == 1)
+                            {
+                                //dos.writeBytes("left_arm" + '\n');
+                                sendMessage("left_arm");
+                            }
+
+                            else if (rs.getInt("is_right_arm_eq") == 1)
+                            {
+                                //dos.writeBytes("right_arm" + '\n');
+                                sendMessage("right_arm");
+                            }
+
+                            else if (rs.getInt("is_left_leg_eq") == 1)
+                            {
+                                //dos.writeBytes("left_leg" + '\n');
+                                sendMessage("left_leg");
+                            }
+
+                            else if (rs.getInt("is_right_leg_eq") == 1)
+                            {
+                                //dos.writeBytes("right_leg" + '\n');
+                                sendMessage("right_leg");
+                            }
+
+                            else if (rs.getInt("is_first_weapon_eq") == 1)
+                            {
+                                //dos.writeBytes("first_weapon" + '\n');
+                                sendMessage("first_weapon");
+                            }
+
+                            else if (rs.getInt("is_secondary_weapon_eq") == 1)
+                            {
+                                //dos.writeBytes("secondary_weapon" + '\n');
+                                sendMessage("secondary_weapon");
+                            }
+
+                            else if (rs.getInt("is_gloves_eq") == 1)
+                            {
+                                //dos.writeBytes("gloves" + '\n');
+                                sendMessage("gloves");
+                            }
+
+                            else if (rs.getInt("is_left_gloves_eq") == 1)
+                            {
+                                //dos.writeBytes("left_gloves" + '\n');
+                                sendMessage("left_gloves");
+                            }
+
+                            else if (rs.getInt("is_right_gloves_eq") == 1)
+                            {
+                                //dos.writeBytes("right_gloves" + '\n');
+                                sendMessage("right_gloves");
+                            }
+
+                            else if (rs.getInt("is_shoes_eq") == 1)
+                            {
+                                //dos.writeBytes("shoes" + '\n');
+                                sendMessage("shoes");
+                            }
+
+                            else if (rs.getInt("is_greaves_eq") == 1)
+                            {
+                                //dos.writeBytes("greaves" + '\n');
+                                sendMessage("greaves");
+                            }
+
+                            else if (rs.getInt("is_left_greaves_eq") == 1)
+                            {
+                                //dos.writeBytes("left_greaves" + '\n');
+                                sendMessage("left_greaves");
+                            }
+
+                            else if (rs.getInt("is_right_greaves_eq") == 1)
+                            {
+                                //dos.writeBytes("right_greaves" + '\n');
+                                sendMessage("right_greaves");
+                            }
+
+                            else if (rs.getInt("is_magic_eq") == 1)
+                            {
+                                //dos.writeBytes("greaves" + '\n');
+                                sendMessage("magic");
+                            }
+
+                            else if (rs.getInt("is_other_eq") == 1)
+                            {
+                                //dos.writeBytes("greaves" + '\n');
+                                sendMessage("other");
+                            }
+
+                            else if (rs.getInt("is_arms_eq") == 1)
+                            {
+                                //dos.writeBytes("greaves" + '\n');
+                                sendMessage("arms");
+                            }
+
+                            else if (rs.getInt("is_legs_eq") == 1)
+                            {
+                                //dos.writeBytes("greaves" + '\n');
+                                sendMessage("legs");
+                            }
+
+                            else if (rs.getInt("is_ammo_eq") == 1)
+                            {
+                                //dos.writeBytes("greaves" + '\n');
+                                sendMessage("ammo");
+                            }
+
+                            else if (rs.getInt("is_shield_eq") == 1)
+                            {
+                                //dos.writeBytes("greaves" + '\n');
+                                sendMessage("shield");
+                            }
+
+                            sendMessage("N:" + rs.getString("nome"));
+                            //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
+
+                            sendMessage("D:" + rs.getString("descrizione"));
+                            //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
+
+                            image = rs.getBlob("foto");
+                            byte barr[] = image.getBytes(1,(int)image.length());
+                            sleep(150);
+                            dos.write(barr);
+
+                            //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
+
+                            sendMessage("V:" + rs.getString("valore"));
+                            //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+
+
+
+                        }
+
+
+                    }
+                    else
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
+                }
+
+                else if (received.equals("get_equipment_from_category"))
+                {
+                    c_name = dis.readLine();
+
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
+
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        number_items_b = 0;
+
+
+
+
+                        if(c_name.equals("head"))
+                        {
+                            ob_type = "is_head_eq";
+                        }
+                        else if (c_name.equals("torso"))
+                        {
+                            ob_type = "is_torso_eq";
+                        }
+
+                        else if (c_name.equals("left_arm"))
+                        {
+                            ob_type = "is_left_arm_eq";
+                        }
+
+                        else if (c_name.equals("right_arm"))
+                        {
+                            ob_type = "is_right_arm_eq";
+                        }
+
+                        else if (c_name.equals("left_leg"))
+                        {
+                            ob_type = "is_left_leg_eq";
+                        }
+
+                        else if (c_name.equals("right_leg"))
+                        {
+                            ob_type = "is_right_leg_eq";
+                        }
+
+                        else if (c_name.equals("first_weapon"))
+                        {
+                            ob_type = "is_first_weapon_eq";
+                        }
+
+                        else if (c_name.equals("secondary_weapon"))
+                        {
+                            ob_type = "is_secondary_weapon_eq";
+                        }
+
+                        else if (c_name.equals("gloves"))
+                        {
+                            ob_type = "is_gloves_eq";
+                        }
+
+                        else if (c_name.equals("left_gloves"))
+                        {
+                            ob_type = "is_left_gloves_eq";
+                        }
+
+                        else if (c_name.equals("right_gloves"))
+                        {
+                            ob_type = "is_right_gloves_eq";
+                        }
+
+                        else if (c_name.equals("shoes"))
+                        {
+                            ob_type = "is_shoes_eq";
+                        }
+
+                        else if (c_name.equals("greaves"))
+                        {
+                            ob_type = "is_greaves_eq";
+                        }
+
+                        else if (c_name.equals("left_greaves"))
+                        {
+                            ob_type = "is_left_greaves_eq";
+                        }
+
+                        else if (c_name.equals("right_greaves"))
+                        {
+                            ob_type = "is_right_greaves_eq";
+                        }
+
+                        else if (c_name.equals("magic"))
+                        {
+                            ob_type = "is_magic_eq";
+                        }
+
+                        else if (c_name.equals("other"))
+                        {
+                            ob_type = "is_other_eq";
+                        }
+
+                        else if (c_name.equals("arms"))
+                        {
+                            ob_type = "is_arms_eq";
+                        }
+
+                        else if (c_name.equals("legs"))
+                        {
+                            ob_type = "is_legs_eq";
+                        }
+
+                        else if (c_name.equals("ammo"))
+                        {
+                            ob_type = "is_ammo_eq";
+                        }
+
+                        else if (c_name.equals("shield"))
+                        {
+                            ob_type = "is_shield_eq";
+                        }
+
+
+                        else
+                        {
+                            ob_type = null;
+                        }
+
+
+                        rs = stmt.executeQuery("SELECT * from R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + character_id + " AND " + ob_type + " = 1");
+                        while (rs.next()) {
+
+                            number_items_b++;
+
+                        }
+
+
+                        sendMessage("NOB:" + Integer.toString(number_items_b));
+                        //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
+
+                        image = null;
+
+                        rs = stmt.executeQuery("SELECT * from R_Personaggio_Oggetto rpo WHERE rpo.id_personaggio = " + character_id + " AND " + ob_type + " = 1");
+                        while (rs.next()) {
+
+
+
+                            sendMessage("N:" + rs.getString("nome"));
+                            //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
+
+                            sendMessage("D:" + rs.getString("descrizione"));
+                            //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
+
+                            image = rs.getBlob("foto");
+                            byte barr[] = image.getBytes(1,(int)image.length());
+                            sleep(150);
+                            dos.write(barr);
+
+                            //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
+
+                            sendMessage("V:" + rs.getString("valore"));
+                            //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+                        }
+
+
+                    }
+                    else
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
+                }
+
+
+
+
+
+
+
+
+
+
+                //SESSION
+
+                //Creating session
+                // RESTITUISCE 1 se ha già fatto il login oppure -1 se ha problemi. Poi restituisce il numero di sessioni per quell'utente e poi ad ogni sessione il numero di utenti online
+                else if (received.equals("get_number_user_online_session"))
+                {
+                    if(is_disconnect == false && is_connect == true) {
+
+                        sendMessage("1");
+
+                        sendMessage("NS:" + Integer.toString(number_sessions));
+                        //dos.writeBytes(Integer.toString(number_sessions) + '\n');
+
+                        if (number_sessions != 0) {
+                            rs = stmt.executeQuery("SELECT * from Sessioni s inner join R_Utente_Sessione rus on rus.id_sessione = s.id where rus.id_utente = " + client_id);
+                            while (rs.next()) {
+
+                                //Calcolo ed invio degli utenti online per quella sessione
+                                number_user_online_session = 0;
+                                rs_temp = stmt.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE u.stato_login = 1 AND rus.id_sessione = " + rs.getString("id"));
+                                while (rs_temp.next()) {
+                                    number_user_online_session++;
+                                }
+
+                                sendMessage("NUO:" + Integer.toString(number_user_online_session));
+
+                            }
+
+
+                        }
+                    }
+                    else
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
+                }
+
+                else if (received.equals("connect_session"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == false) {
+                        id_passed_session = "";
+                        id_passed_session = dis.readLine();
+
+                        i = 0;
+                        rs = stmt.executeQuery("SELECT * from Sessioni s inner join R_Utente_Sessione rus on rus.id_sessione = s.id where rus.id_utente = " + client_id);
+                        while (rs.next()) {
+
+
+                            session_id = rs.getInt("id");
+
+                            if(i == Integer.parseInt(id_passed_session))
+                            {
+                                is_session_connected = true;
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+
+                                if(rs.getInt("id_host") != client_id) //Se l'utente non è host allora mi fai vedere la vista dei characters
+                                {
+                                    is_host = false;
+                                    rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.id_utente = " + client_id + " AND p.is_character = 1");
+                                    while (rs_temp.next()) {
+                                        number_characters++;
+                                    }
+
+                                    sendMessage("NC:" + Integer.toString(number_characters));
+                                    //dos.writeBytes(Integer.toString(number_characters) + '\n'); //Restituisco il numero di characters per quell'utente
+
+                                    rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.id_utente = " + client_id + " AND p.is_character = 1");
+                                    while (rs_temp.next()) {
+
+                                        sendMessage("N:" + rs_temp.getString("nome"));
+                                        //dos.writeBytes(rs_temp.getString("nome") + '\n');
+
+                                        sendMessage("HP:" + Integer.toString(rs_temp.getInt("hp")));
+                                        //dos.writeBytes(Integer.toString(rs_temp.getInt("hp")) + '\n');
+
+                                        sendMessage("HPMAX:" + Integer.toString(rs_temp.getInt("hp_max")));
+                                        //dos.writeBytes(Integer.toString(rs_temp.getInt("hp_max")) + '\n');
+                                    }
+
+
+                                }
+
+                                else
+                                {
+                                    //FUNZIONI PER IL GAME MASTER
+                                    is_host = true;
+
+                                }
+
+                            }
+
+                            i++;
+
+                        }
+
+                    }
+                    else
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
+                }
+
+                else if (received.equals("disconnect_session"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == false) {
+                        character_id = 0;
+                        session_id = 0;
+                        is_host = false;
+                        is_character_connected = false;
+                        is_session_connected = false;
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n');
+
+                    }
+                    else
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
+                }
+
+
+                else if (received.equals("get_users_session"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true) {
+
+                        if(number_sessions != 0)
+                        {
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
+
+                            //Calcolo ed invio degli utenti online per quella sessione
+                            number_user_online_session = 0;
+                            rs_temp = stmt.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE rus.id_sessione = " + rs.getString("id"));
+                            while (rs_temp.next()) {
+                                number_user_online_session++;
+                            }
+                            sendMessage("NUOS:" + Integer.toString(number_user_online_session));
+                            //dos.writeBytes(Integer.toString(number_user_online_session) + '\n');
+
+                            rs_temp = stmt.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE AND rus.id_sessione = " + rs.getString("id"));
+                            while (rs_temp.next()) {
+
+                                sendMessage("NOU:" + rs_temp.getString("nome_utente"));
+                                //dos.writeBytes(rs_temp.getString("nome_utente") + '\n'); // Restituisco il nome dell'oggetto
+
+                                if(rs_temp.getInt("stato_login") == 1)
+                                {
+                                    sendMessage("is_logged");
+                                    //dos.writeBytes("is_logged" + '\n');
+                                }
+                                else if(rs_temp.getInt("stato_login") == 0)
+                                {
+                                    sendMessage("is_not_logged");
+                                    //dos.writeBytes("is_not_logged" + '\n');
+                                }
+
+                                image = rs_temp.getBlob("imm_profilo");
+                                byte barr[] = image.getBytes(1,(int)image.length());
+                                sleep(150);
+                                dos.write(barr);
+
+                            }
+                        }
+
+                    }
+                    else
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
+                }
+
+
+                else if (received.equals("show_user_session"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true) {
+
+                        if(number_sessions != 0)
+                        {
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
+
+                            rs = stmt.executeQuery("SELECT * from Sessioni s inner join R_Utente_Sessione rus on rus.id_sessione = s.id where rus.id_utente = " + client_id);
+                            while (rs.next()) {
+
+                                //Invio del titolo
+                                sendMessage("T:" + rs.getString("titolo"));
+                                //dos.writeBytes(rs.getString("titolo") + '\n');
+
+                                if (rs.getString("sottotitolo") == null) {
+                                    sendMessage("S:0");
+                                } else {
+                                    System.out.println("SottoTitolo: " + rs.getString("sottotitolo"));
+                                    sendMessage("S:" + rs.getString("sottotitolo"));
+                                }
+
+                                //Calcolo ed invio degli utenti online per quella sessione
+                                number_user_online_session = 0;
+                                rs_temp = stmt.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE u.stato_login = 1 AND rus.id_sessione = " + rs.getString("id"));
+                                while (rs_temp.next()) {
+                                    number_user_online_session++;
+                                }
+                                sendMessage("NUO:" + Integer.toString(number_user_online_session));
+                                //dos.writeBytes(Integer.toString(number_user_online_session) + '\n');
+
+                            }
+                        }
+                    }
+                    else
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
+                }
+
+                else if (received.equals("create_session"))
+                {
+                    s_titolo = dis.readLine();
+                    s_sottotitolo = dis.readLine();
+
+                    if(is_disconnect == false && is_connect == true)
+                    {
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n');
+
+
+
+                        find_trade = false;
+                        rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.titolo = '" + s_titolo + "'");
+                        while (rs_temp.next()) {
+                            find_trade = true;
+                        }
+
+                        if(find_trade == false)
+                        {
+                            find_category = false;
+
+                            do
+                            {
+                                s_codice_invito = (int)((Math.random()*((9999-1000)+1))+1000);
+
+
+                                find_category = false;
+                                rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.codice_invito = " + s_codice_invito);
+                                while (rs_temp.next()) {
+                                    find_category = true;
+                                }
+
+
+
+                            }
+                            while(find_category == true);
+
+
+                            pstmt = conn.prepareStatement("INSERT INTO Sessioni " + "(titolo, sottotitolo, codice_invito, id_host) values (?,?,?,?)");
+                            pstmt.setString(1, s_titolo);
+                            pstmt.setString(2, s_sottotitolo);
+                            pstmt.setInt(3, s_codice_invito);
+                            pstmt.setInt(4, client_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
+
+                            sendMessage(Integer.toString(s_codice_invito));
+                            //dos.writeBytes(Integer.toString(s_codice_invito) + '\n');
+
+                        }
+
+                        else
+                        {
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                    {
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
+                    }
+                }
+
+                //Add session
+                else if (received.equals("add_session"))
+                {
+                    s_codice_invito = Integer.parseInt(dis.readLine());
+
+                    if(is_disconnect == false && is_connect == true)
+                    {
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n');
+
+                        find_trade = false;
+                        rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.codice_invito = " + s_codice_invito);
+                        while (rs_temp.next()) {
+                            find_trade = true;
+                            send_id = rs_temp.getInt("id");
+                        }
+
+                        if(find_trade == true)
+                        {
+
+                            rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.id = " + send_id);
+                            while (rs_temp.next()) {
+
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+
+                                //Inserimento nella tabella relazione con sessione e utente
+                                pstmt = conn.prepareStatement("INSERT INTO R_Utente_Sessione " + "(id_utente, id_sessione) values (?,?)");
+
+                                pstmt.setInt(1, client_id);
+                                pstmt.setInt(2, send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+
+
+                                //Invio del titolo
+                                sendMessage("T:" + rs_temp.getString("titolo"));
+                                //dos.writeBytes(rs_temp.getString("titolo") + '\n');
+
+                                //Invio del sottotitolo
+                                sendMessage("S:" + rs_temp.getString("sottotitolo"));
+                                //dos.writeBytes(rs_temp.getString("sottotitolo") + '\n');
+
+
+                                //Calcolo ed invio degli utenti online per quella sessione
+                                number_user_online_session = 0;
+                                rs = stmt.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE u.stato_login = 1 AND rus.id_sessione = " + send_id);
+                                while (rs.next()) {
+                                    number_user_online_session++;
+                                }
+
+                                sendMessage("NUO:" + Integer.toString(number_user_online_session));
+                                //dos.writeBytes(Integer.toString(number_user_online_session) + '\n');
+
+
+
+
+                            }
+
+
+                        }
+
+                        else
+                        {
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
+                        }
+
+
+
+                    }
+                    else
+                    {
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
+                    }
+                }
+
+                //Show all items of that session
+                else if (received.equals("show_items_session"))
+                {
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
+
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        number_items_b = 0;
+
+                        rs = stmt.executeQuery("SELECT * from Oggetti o WHERE o.id_sessione = " + session_id);
+                        while (rs.next()) {
+                            number_items_b++;
+                        }
+
+                        sendMessage("NOB:" + Integer.toString(number_items_b));
+                        //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
+
+                        image = null;
+
+                        rs = stmt.executeQuery("SELECT * from Oggetti o WHERE rpo.id_sessione = " + session_id);
+                        while (rs.next()) {
+
+                            sendMessage("N:" + rs.getString("nome"));
+                            //dos.writeBytes(rs.getString("nome") + '\n'); // Restituisco il nome dell'oggetto
+
+                            sendMessage("D:" + rs.getString("descrizione"));
+                            //dos.writeBytes(rs.getString("descrizione") + '\n'); // Restituisco la descrizione dell'oggetto
+
+                            image = rs.getBlob("foto");
+                            byte barr[] = image.getBytes(1,(int)image.length());
+                            sleep(150);
+                            dos.write(barr);
+
+                            //dos.writeBytes( + '\n'); // Restituisco la foto dell'oggetto
+
+                            sendMessage("V:" + rs.getString("valore"));
+                            //dos.writeBytes(rs.getString("valore") + '\n'); // Restituisco il valore dell'oggetto
+
+                            sendMessage("Q:" + rs.getString("quantita"));
+                            //dos.writeBytes(rs.getString("quantita") + '\n'); // Restituisco la quantita dell'oggetto
+
+
+                            sendMessage("RC:" + rs.getString("rarita_colore")); //Mando la rarita del colore
+
+                            sendMessage("PO:" + Float.toString(rs.getFloat("potenza"))); //Mando la potenza
+
+                            sendMessage("PE:" + Float.toString(rs.getFloat("peso"))); //Mando il peso
+
+                            sendMessage("DUR:" + Integer.toString(rs.getInt("durabilita"))); //Mando la durabilita
+                        }
+
+
+                    }
+                    else
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
+                }
+
+                else if (received.equals("update_session_data"))
+                {
+                    o_nome = dis.readLine();
+                    ob_type = dis.readLine();
+                    ob_data = dis.readLine();
+
+
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
+                    {
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = false;
+
+                        rs = stmt.executeQuery("SELECT * from Sessioni p WHERE p.titolo = '" + o_nome + "' AND p.id_host = " + client_id);
+                        while (rs.next())
+                        {
+                            if(o_nome.equals(rs.getString("nome"))) {
+                                find_category = true;
+                                send_id = rs.getInt("id");
+                            }
+                        }
+
+                        if(find_category == true)
+                        {
+                            if(ob_type.equals("titolo"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Sessioni SET titolo = '" + ob_data + "' where Sessioni.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("sottotitolo"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Sessioni SET sottotitolo = '" + ob_data + "' where Sessioni.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("codice_invito"))
+                            {
+
+                                find_category = false;
+
+                                do
+                                {
+                                    s_codice_invito = (int)((Math.random()*((9999-1000)+1))+1000);
+
+                                    find_category = false;
+                                    rs_temp = stmt.executeQuery("SELECT * FROM Sessioni WHERE Sessioni.codice_invito = " + s_codice_invito);
+                                    while (rs_temp.next()) {
+                                        find_category = true;
+                                    }
+
+                                }
+                                while(find_category == true);
+
+
+                                pstmt = conn.prepareStatement("UPDATE Sessioni SET codice_invito = '" + s_codice_invito + "' where Sessioni.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage(Integer.toString(s_codice_invito));
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+
+                            //UPDATE FOTO
+
+                            else
+                            {
+                                sendMessage("-3");
+                                //dos.writeBytes("-3" + '\n');
+                            }
+
+                        }
+                        else
+                        {
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                    {
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
+                    }
+                }
+
+                else if(received.equals("show_users_online"))
+                {
+
+                    //VISUALIZZO GLI UTENTI ONLINE
+
+                    System.out.println("\nClient " + this.s + " want to know the users online");
+
+
+                    try {
+
+                        my_bool = false;
+
+                        if(is_connect == false && is_disconnect) {
+                            Class.forName("com.mysql.jdbc.Driver");
+                            conn = DriverManager.getConnection("jdbc:mysql://216.158.239.6/game?" + "user=inventorymaster&password=Rootinventory1!");
+                            stmt = conn.createStatement();
+                            my_bool = true;
+                        }
+                        // creo la tabella
+
+
+                        number_users_online = 0;
+
+                        rs = stmt.executeQuery("SELECT * from Utenti where Utenti.stato_login = '1'");
+
+                        while(rs.next())
+                        {
+                            number_users_online++;
+                        }
+
+
+                        sendMessage(Integer.toString(number_users_online));
+                        //dos.writeBytes(Integer.toString(number_users_online) + '\n');
+
+
+                        // creo la tabella
+                        if(number_users_online > 0) {
+                            rs = stmt.executeQuery("SELECT * from Utenti where Utenti.stato_login = '1'");
+
+                            toreturn = "";
+
+                            while (rs.next()) {
+                                toreturn = rs.getString("nome_utente");
+                                //toreturn = " NAME: " + rs.getString("nome") + "  SURNAME: " + rs.getString("cognome") + "  USERNAME: " + rs.getString("nome_utente");
+                                System.out.println(toreturn);
+                                sendMessage(toreturn);
+                                //dos.writeBytes(toreturn + '\n');
+
+                            }
+
+                        }
+
+                        if(my_bool)
+                        {
+                            my_bool = false;
+                            stmt.close(); // rilascio le risorse
+                            conn.close(); // termino la connessione
+                        }
+
+                    }
+                    catch(SQLException e)
+                    {
+                        System.out.println(e);
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+
+
+
+
+                //Unlock trading
+                else if (received.equals("unlock_trading"))
+                {
+                    character_nome = dis.readLine();
+
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
+                    {
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = false;
+
+
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + character_nome + "'");
+                        while (rs.next())
+                        {
+
+                            if(character_nome.equals(rs.getString("nome"))) {
+                                find_category = true;
+                                send_id = rs.getInt("id");
+                            }
+                        }
+
+                        if(find_category == true)
+                        {
+                            pstmt = conn.prepareStatement("UPDATE Personaggi SET is_trading_enabled = '1' where Personaggi.id = " + send_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
+
+                        }
+                        else
+                        {
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                    {
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
+                    }
+                }
+
+
+                //Lock trading
+                else if (received.equals("lock_trading"))
+                {
+                    character_nome = dis.readLine();
+
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
+                    {
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = false;
+
+                        rs = stmt.executeQuery("SELECT * from Personaggi p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + character_nome + "'");
+                        while (rs.next())
+                        {
+
+                            if(character_nome.equals(rs.getString("nome"))) {
+                                find_category = true;
+                                send_id = rs.getInt("id");
+                            }
+                        }
+
+                        if(find_category == true)
+                        {
+                            pstmt = conn.prepareStatement("UPDATE Personaggi SET is_trading_enabled = '0' where Personaggi.id = " + send_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
+
+                        }
+                        else
+                        {
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                    {
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
+                    }
+                }
+
+
+                // Game master
+
+
+
+
+
+                //Update punti skill // DA non fare adesso
+
+                //Show all monsters
+
+                //Show all npcs
+
+                //Show all characters
+
+                //Show all transport
+
+
+
+                //Category
+
+                //DA CAMBIARE
+                else if (received.equals("get_category_data"))
+                {
+                    o_nome = dis.readLine();
+                    ob_type = dis.readLine();
+
+
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true)
+                    {
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = false;
+
+
+                        rs = stmt.executeQuery("SELECT * from Categorie p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + o_nome + "'");
+                        while (rs.next())
+                        {
+                            if(o_nome.equals(rs.getString("nome"))) {
+                                find_category = true;
+                                send_id = rs.getInt("id");
+                            }
+                        }
+
+                        if(find_category == true)
+                        {
+
+                            rs = stmt.executeQuery("SELECT * from Categorie p WHERE p.id_sessione = " + session_id + " AND p.id = " + send_id);
+                            while (rs.next())
+                            {
+
+                                if(ob_type.equals("descrizione"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(rs.getString("descrizione"));
+                                    //dos.writeBytes(rs.getString("descrizione") + '\n');
+                                }
+
+                                else if(ob_type.equals("tipo_potenza"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(rs.getString("descrizione"));
+                                    //dos.writeBytes(rs.getString("tipo_potenza") + '\n');
+                                }
+
+
+                                //GET FOTO
+
+
+                                else if(ob_type.equals("head"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_head_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_head_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("torso"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_torso_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_torso_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("left_arm"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_left_arm_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_left_arm_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("right_arm"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_right_arm_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_right_arm_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("left_leg"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_left_leg_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_left_leg_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("right_leg"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_right_leg_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_right_leg_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("first_weapon"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_first_weapon_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_first_weapon_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("secondary_weapon"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_secondary_weapon_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_secondary_weapon_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("gloves"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_gloves_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_gloves_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("left_gloves"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_left_gloves_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_left_gloves_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("right_gloves"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_right_gloves_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_right_gloves_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("shoes"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_shoes_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_shoes_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("greaves"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_greaves_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_greaves_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("left_greaves"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_left_greaves_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_left_greaves_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("right_greaves"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_right_greaves_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_right_greaves_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("magic"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_magic_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_magic_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("other"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_other_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_other_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("arms"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_arms_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_arms_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("legs"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_legs_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_legs_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("ammo"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_ammo_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_ammo_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("shield"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("is_shield_eq")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("is_ammo_eq")) + '\n');
+                                }
+
+                                else if(ob_type.equals("numero_slot"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+
+                                    sendMessage(Integer.toString(rs.getInt("numero_slot")));
+                                    //dos.writeBytes(Integer.toString(rs.getInt("numero_slot")) + '\n');
+                                }
+
+                                else
+                                {
+                                    sendMessage("-3");
+                                    //dos.writeBytes("-3" + '\n');
+                                }
+                            }
+
+
+
+                        }
+                        else
+                        {
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                    {
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
+                    }
+                }
+
+
+                else if (received.equals("update_category_data"))
+                {
+                    o_nome = dis.readLine();
+                    ob_type = dis.readLine();
+                    ob_data = dis.readLine();
+
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true)
+                    {
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = false;
+
+
+
+
+                        rs = stmt.executeQuery("SELECT * from Categorie p WHERE p.id_sessione = " + session_id + " AND p.nome = '" + o_nome + "'");
+                        while (rs.next())
+                        {
+                            if(o_nome.equals(rs.getString("nome"))) {
+                                find_category = true;
+                                send_id = rs.getInt("id");
+                            }
+                        }
+
+                        if(find_category == true)
+                        {
+                            if(ob_type.equals("nome"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET nome = '" + ob_data + "' where Categorie.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("descrizione"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET descrizione = '" + ob_data + "' where Categorie.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("tipo_potenza"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET tipo_potenza = '" + ob_data + "' where Categorie.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("head"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_head_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("torso"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_torso_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("left_arm"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_arm_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("right_arm"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_arm_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("left_leg"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_leg_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("right_leg"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_leg_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("first_weapon"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_first_weapon_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("secondary_weapon"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_secondary_weapon_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("gloves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_gloves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("left_gloves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_gloves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("right_gloves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_gloves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("shoes"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_shoes_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("greaves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_greaves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("left_greaves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_left_greaves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("right_greaves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_right_greaves_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("magic"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_magic_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("other"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_other_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("arms"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_arms_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("legs"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_legs_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("ammo"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_ammo_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("shield"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET is_shield_eq = '1' WHERE Categorie.id = '" + send_id + "'");
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("numero_slot"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Categorie SET numero_slot = '" + Integer.parseInt(ob_data) + "' where Categorie.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+
+
+                            //UPDATE FOTO
+
+                            else
+                            {
+                                sendMessage("-3");
+                                //dos.writeBytes("-3" + '\n');
+                            }
+
+                        }
+                        else
+                        {
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                    {
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
+                    }
+                }
+
+
+                else if (received.equals("get_avaible_category_items"))
+                {
+                    ob_type = dis.readLine(); //Mi prendo il nome della category
+
+
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true) {
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+                        find_object = false;
+
+
+                        if(ob_type.equals("head"))
+                        {
+                            find_object = true;
+                            ob_type = "is_head_eq";
+
+                        }
+
+                        else if(ob_type.equals("torso"))
+                        {
+                            find_object = true;
+                            ob_type = "is_torso_eq";
+                        }
+
+                        else if(ob_type.equals("left_arm"))
+                        {
+                            find_object = true;
+                            ob_type = "is_left_arm_eq";
+                        }
+
+                        else if(ob_type.equals("right_arm"))
+                        {
+                            find_object = true;
+                            ob_type = "is_right_arm_eq";
+                        }
+
+                        else if(ob_type.equals("left_leg"))
+                        {
+                            find_object = true;
+                            ob_type = "is_left_leg_eq";
+                        }
+
+                        else if(ob_type.equals("right_leg"))
+                        {
+                            find_object = true;
+                            ob_type = "is_right_leg_eq";
+                        }
+
+                        else if(ob_type.equals("first_weapon"))
+                        {
+                            find_object = true;
+                            ob_type = "is_first_weapon_eq";
+                        }
+
+                        else if(ob_type.equals("secondary_weapon"))
+                        {
+                            find_object = true;
+                            ob_type = "is_secondary_weapon_eq";
+                        }
+
+                        else if(ob_type.equals("gloves"))
+                        {
+                            find_object = true;
+                            ob_type = "is_gloves_eq";
+                        }
+
+                        else if(ob_type.equals("left_gloves"))
+                        {
+                            find_object = true;
+                            ob_type = "is_left_gloves_eq";
+                        }
+
+                        else if(ob_type.equals("right_gloves"))
+                        {
+                            find_object = true;
+                            ob_type = "is_right_gloves_eq";
+                        }
+
+                        else if(ob_type.equals("shoes"))
+                        {
+                            find_object = true;
+                            ob_type = "is_shoes_eq";
+                        }
+
+                        else if(ob_type.equals("greaves"))
+                        {
+                            find_object = true;
+                            ob_type = "is_greaves_eq";
+                        }
+
+                        else if(ob_type.equals("left_greaves"))
+                        {
+                            find_object = true;
+                            ob_type = "is_left_greaves_eq";
+                        }
+
+                        else if(ob_type.equals("right_greaves"))
+                        {
+                            find_object = true;
+                            ob_type = "is_right_greaves_eq";
+                        }
+
+                        else if(ob_type.equals("magic"))
+                        {
+                            find_object = true;
+                            ob_type = "is_magic_eq";
+                        }
+
+                        else if(ob_type.equals("other"))
+                        {
+                            find_object = true;
+                            ob_type = "is_other_eq";
+                        }
+
+                        else if(ob_type.equals("arms"))
+                        {
+                            find_object = true;
+                            ob_type = "is_arms_eq";
+                        }
+
+                        else if(ob_type.equals("legs"))
+                        {
+                            find_object = true;
+                            ob_type = "is_legs_eq";
+                        }
+
+                        else if(ob_type.equals("ammo"))
+                        {
+                            find_object = true;
+                            ob_type = "is_ammo_eq";
+                        }
+
+                        else if(ob_type.equals("shield"))
+                        {
+                            find_object = true;
+                            ob_type = "is_shield_eq";
+                        }
+
+                        if(find_object) {
+
+                            number_object_categories = 0;
+
+
+                            rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN Categorie c on c.id = o.id_categoria INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE o.id_sessione = '" + session_id + "' AND rpo.id_personaggio = '" + character_id + "' AND c." + ob_type + " = '1' AND (rpo.is_head_eq = 0 AND rpo.is_torso_eq = 0 AND rpo.is_left_arm_eq = 0 AND rpo.is_right_arm_eq = 0 AND rpo.is_left_leg_eq = 0 AND rpo.is_right_leg_eq = 0 AND rpo.is_first_weapon_eq = 0 AND rpo.is_secondary_weapon_eq = 0 AND rpo.is_gloves_eq = 0 AND rpo.is_left_gloves_eq = 0 AND rpo.is_right_gloves_eq = 0 AND rpo.is_shoes_eq = 0 AND rpo.is_greaves_eq = 0 AND rpo.is_left_greaves_eq = 0 AND rpo.is_right_greaves_eq = 0 AND rpo.is_arms_eq = 0 AND rpo.is_legs_eq = 0 AND rpo.is_ammo_eq = 0 AND rpo.is_other_eq = 0 AND rpo.is_magic_eq = 0 AND rpo.is_shield_eq = 0)");
+                            while (rs.next()) {
+                                number_object_categories++;
+                            }
+
+                            sendMessage("NOC:" + Integer.toString(number_object_categories));
+
+                            rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN Categorie c on c.id = o.id_categoria INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE o.id_sessione = '" + session_id + "' AND rpo.id_personaggio = '" + character_id + "' AND c." + ob_type + " = '1' AND (rpo.is_head_eq = 0 AND rpo.is_torso_eq = 0 AND rpo.is_left_arm_eq = 0 AND rpo.is_right_arm_eq = 0 AND rpo.is_left_leg_eq = 0 AND rpo.is_right_leg_eq = 0 AND rpo.is_first_weapon_eq = 0 AND rpo.is_secondary_weapon_eq = 0 AND rpo.is_gloves_eq = 0 AND rpo.is_left_gloves_eq = 0 AND rpo.is_right_gloves_eq = 0 AND rpo.is_shoes_eq = 0 AND rpo.is_greaves_eq = 0 AND rpo.is_left_greaves_eq = 0 AND rpo.is_right_greaves_eq = 0 AND rpo.is_arms_eq = 0 AND rpo.is_legs_eq = 0 AND rpo.is_ammo_eq = 0 AND rpo.is_other_eq = 0 AND rpo.is_magic_eq = 0 AND rpo.is_shield_eq = 0)");
+                            while (rs.next()) {
+
+                                sendMessage("N:" + rs.getString("o.nome")); //Restituisco il nome
+
+                                sendMessage("R:" + rs.getString("rarita_colore")); //Restituisco la rarita
+
+                                sendMessage("PE:" + Float.toString(rs.getFloat("peso")));
+
+                                sendMessage("DU:" + Integer.toString(rs.getInt("durabilita")));
+
+                                sendMessage("PO:" + Float.toString(rs.getFloat("potenza")));
+
+                                sendMessage("QU:" + Integer.toString(rs.getInt("quantita")));
+                            }
+
+                        }
+                        else
+                        {
+                            sendMessage("-2");
+                        }
+
+                    }
+                    else
+                        sendMessage("-1");
+                }
+
+
+
+                //Object
 
                 else if (received.equals("get_object_data"))
                 {
@@ -4816,6 +4980,154 @@ class ClientHandler extends Thread
                     }
                 }
 
+                //Adding object to equipment
+                else if (received.equals("add_object_equipment"))
+                {
+                    c_name = dis.readLine();
+                    what_character = dis.readLine();
+
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true)
+                    {
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_category = false;
+
+
+                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on o.id = rpo.id_oggetto INNER JOIN Personaggio p on p.id = rpo.id_personaggio WHERE p.id_sessione = " + session_id + " AND p.id = " + character_id + " AND o.nome = '" + c_name + "'");
+                        while (rs.next())
+                        {
+                            if(c_name.equals(rs.getString("o.nome"))) {
+                                find_category = true;
+                                send_id = rs.getInt("o.id");
+                            }
+                        }
+
+
+                        if(find_category == true)
+                        {
+                            pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_head_eq = '0', is_torso_eq = '0', is_left_arm_eq = '0', is_right_arm_eq = '0', is_left_leg_eq = '0', is_right_leg_eq = '0', is_first_weapon_eq = '0', is_secondary_weapon_eq = '0', is_gloves_eq = '0', is_left_gloves_eq = '0', is_right_gloves_eq = '0', is_shoes_eq = '0', is_greaves_eq = '0', is_left_greaves_eq = '0', is_right_greaves_eq = '0', is_arms_eq = '0', is_other_eq = '0', is_magic_eq = '0', is_shield_eq = '0' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            pstmt.execute();
+                            pstmt.close();
+
+
+                            if(what_character.equals("head"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_head_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("torso"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_torso_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("left_arm"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_left_arm_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("right_arm"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_right_arm_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("left_leg"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_left_leg_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("right_leg"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_right_leg_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("first_weapon"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_first_weapon_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("secondary_weapon"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_secondary_weapon_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("gloves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_gloves_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("left_gloves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_left_gloves_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("right_gloves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_right_gloves_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("shoes"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_shoes_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("greaves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_greaves_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("left_greaves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_left_greaves_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("right_greaves"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_right_greaves_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("arms"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_arms_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("legs"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_legs_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("ammo"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_ammo_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            else if(what_character.equals("shield"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto SET is_shield_eq = '1' WHERE R_Personaggio_Oggetto.id_oggetto = " + send_id + " AND R_Personaggio_Oggetto.id_personaggio = " + character_id);
+                            }
+
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
+
+                        }
+                        else
+                        {
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
+                        }
+
+                    }
+                    else
+                    {
+                        sendMessage("-1");
+                        //dos.writeBytes("-1" + '\n');
+                    }
+                }
+
+                //Remove object from equipment
 
                 //ADD object to category
                 else if (received.equals("add_object_category"))
@@ -4892,6 +5204,8 @@ class ClientHandler extends Thread
                     //dos.writeBytes("-1" + '\n');
                 }
 
+                //Remove object from category
+
                 //ADD object to character
                 else if (received.equals("add_object_character"))
                 {
@@ -4966,6 +5280,53 @@ class ClientHandler extends Thread
 
                             }
 
+                            sendMessage("1");
+                            //dos.writeBytes("1" + '\n');
+                        }
+
+                    }
+                    else
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
+                }
+
+                //Remove object from character
+                else if (received.equals("remove_object_character"))
+                {
+                    o_nome = dis.readLine(); //Mi prendo il nome dell'oggetto
+                    ob_quantity = Integer.parseInt(dis.readLine());
+
+
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
+
+
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_object = false;
+
+
+                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + character_id + " AND o.id_sessione = " + session_id + " AND o.nome = '" + o_nome + "'");
+                        while (rs.next()) {
+
+                            find_object = true;
+                            ob_id = rs.getInt("o.id");
+                        }
+
+
+                        if(find_object == false)
+                        {
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
+                        }
+
+                        else
+                        {
+                            pstmt = conn.prepareStatement("DELETE FROM R_Personaggio_Oggetto WHERE id_personaggio = ? AND id_oggetto = ?");
+                            pstmt.setInt(1, character_id);
+                            pstmt.setInt(2, ob_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
                             sendMessage("1");
                             //dos.writeBytes("1" + '\n');
                         }
@@ -5054,6 +5415,9 @@ class ClientHandler extends Thread
                     //dos.writeBytes("-1" + '\n');
                 }
 
+
+
+                //USER
 
                 else if(received.equals("get_user_id"))
                 {
@@ -5289,98 +5653,6 @@ class ClientHandler extends Thread
                 }
 
 
-                /*
-                // creating Date object 
-                Date date = new Date(); 
-                  
-                // write on output stream based on the 
-                // answer from the client 
-                switch (received) { 
-                  
-                    case "Date" : 
-                        toreturn = fordate.format(date); 
-                        dos.writeUTF(toreturn); 
-                        break; 
-                          
-                    case "Time" : 
-                        toreturn = fortime.format(date); 
-                        dos.writeUTF(toreturn); 
-                        break; 
-                          
-                    default: 
-                        dos.writeUTF("Invalid input"); 
-                        break; 
-                } */
-
-
-                else if(received.equals("show_users_online"))
-                {
-
-                    //VISUALIZZO GLI UTENTI ONLINE
-
-                    System.out.println("\nClient " + this.s + " want to know the users online");
-
-
-                    try {
-
-                        my_bool = false;
-
-                        if(is_connect == false && is_disconnect) {
-                            Class.forName("com.mysql.jdbc.Driver");
-                            conn = DriverManager.getConnection("jdbc:mysql://216.158.239.6/game?" + "user=inventorymaster&password=Rootinventory1!");
-                            stmt = conn.createStatement();
-                            my_bool = true;
-                        }
-                        // creo la tabella
-
-
-                        number_users_online = 0;
-
-                        rs = stmt.executeQuery("SELECT * from Utenti where Utenti.stato_login = '1'");
-
-                        while(rs.next())
-                        {
-                            number_users_online++;
-                        }
-
-
-                        sendMessage(Integer.toString(number_users_online));
-                        //dos.writeBytes(Integer.toString(number_users_online) + '\n');
-
-
-                        // creo la tabella
-                        if(number_users_online > 0) {
-                            rs = stmt.executeQuery("SELECT * from Utenti where Utenti.stato_login = '1'");
-
-                            toreturn = "";
-
-                            while (rs.next()) {
-                                toreturn = rs.getString("nome_utente");
-                                //toreturn = " NAME: " + rs.getString("nome") + "  SURNAME: " + rs.getString("cognome") + "  USERNAME: " + rs.getString("nome_utente");
-                                System.out.println(toreturn);
-                                sendMessage(toreturn);
-                                //dos.writeBytes(toreturn + '\n');
-
-                            }
-
-                        }
-
-                        if(my_bool)
-                        {
-                            my_bool = false;
-                            stmt.close(); // rilascio le risorse
-                            conn.close(); // termino la connessione
-                        }
-
-                    }
-                    catch(SQLException e)
-                    {
-                        System.out.println(e);
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    }
-
-                }
 
                 else
                 {
