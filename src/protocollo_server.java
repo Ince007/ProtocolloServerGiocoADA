@@ -5128,6 +5128,49 @@ class ClientHandler extends Thread
                 }
 
                 //Remove object from equipment
+                else if (received.equals("remove_object_equipment"))
+                {
+                    o_nome = dis.readLine(); //Mi prendo il nome dell'oggetto
+                    ob_quantity = Integer.parseInt(dis.readLine());
+
+
+                    if(is_disconnect == false && is_connect == true && is_session_connected == true && is_character_connected == true) {
+
+
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n'); // Restituisco la conferma
+
+                        find_object = false;
+
+
+                        rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE rpo.id_personaggio = " + character_id + " AND o.id_sessione = " + session_id + " AND o.nome = '" + o_nome + "'");
+                        while (rs.next()) {
+
+                            find_object = true;
+                            ob_id = rs.getInt("o.id");
+                        }
+
+
+                        if(find_object == false)
+                        {
+                            sendMessage("-2");
+                            //dos.writeBytes("-2" + '\n');
+                        }
+
+                        else
+                        {
+                            pstmt = conn.prepareStatement("UPDATE R_Personaggio_Oggetto rpo SET rpo.is_head_eq = 0, rpo.is_torso_eq = 0, rpo.is_left_arm_eq = 0, rpo.is_right_arm_eq = 0, rpo.is_left_leg_eq = 0, rpo.is_right_leg_eq = 0, rpo.is_first_weapon_eq = 0, rpo.is_secondary_weapon_eq = 0, rpo.is_gloves_eq = 0, rpo.is_left_gloves_eq = 0, rpo.is_right_gloves_eq = 0, rpo.is_shoes_eq = 0, rpo.is_greaves_eq = 0, rpo.is_left_greaves_eq = 0, rpo.is_right_greaves_eq = 0, rpo.is_arms_eq = 0, rpo.is_legs_eq = 0, rpo.is_ammo_eq = 0, rpo.is_other_eq = 0, rpo.is_magic_eq = 0, rpo.is_shield_eq = 0 WHERE rpo.id_oggetto = " + ob_id + " AND rpo.id_personaggio = " + character_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+
+                            sendMessage("1");
+
+                        }
+
+                    }
+                    else
+                        sendMessage("-1");
+                }
 
                 //ADD object to category
                 else if (received.equals("add_object_category"))
@@ -5204,7 +5247,6 @@ class ClientHandler extends Thread
                     //dos.writeBytes("-1" + '\n');
                 }
 
-                //Remove object from category
 
                 //ADD object to character
                 else if (received.equals("add_object_character"))
