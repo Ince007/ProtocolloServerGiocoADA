@@ -275,33 +275,38 @@ class ClientHandler extends Thread
 
                 // receive the answer from client 
                 received = dis.readLine();
+
+
+
+                //USER
+
                 if(received.equals("connect"))      //CONNECT
-                {  	
-                	if(is_connect == false && is_disconnect == true)
-                	{
+                {
+                    if(is_connect == false && is_disconnect == true)
+                    {
 
-	                	//CONNESSIONE AL DATABASE
-	
-	                    System.out.println("\nClient " + this.s + " want to connect to the database");
+                        //CONNESSIONE AL DATABASE
+
+                        System.out.println("\nClient " + this.s + " want to connect to the database");
 
 
-	                    username = dis.readLine();
-	                    password = dis.readLine();
+                        username = dis.readLine();
+                        password = dis.readLine();
 
 
                         System.out.println("Username: " + username);
                         System.out.println("Password: " + password);
-	
-	
-	
-	                    try {
-	                        Class.forName("com.mysql.jdbc.Driver");
-	                        conn = DriverManager.getConnection("jdbc:mysql://216.158.239.6/game?" + "user=inventorymaster&password=Rootinventory1!");
+
+
+
+                        try {
+                            Class.forName("com.mysql.jdbc.Driver");
+                            conn = DriverManager.getConnection("jdbc:mysql://216.158.239.6/game?" + "user=inventorymaster&password=Rootinventory1!");
 
                             //conn = DriverManager.getConnection("jdbc:mysql://localhost/game?" + "user=root&password=");
-	
-	                        // creo la tabella
-	                        stmt = conn.createStatement();
+
+                            // creo la tabella
+                            stmt = conn.createStatement();
 
                             conn_temp = DriverManager.getConnection("jdbc:mysql://216.158.239.6/game?" + "user=inventorymaster&password=Rootinventory1!");
                             stmt_temp = conn_temp.createStatement();
@@ -310,38 +315,38 @@ class ClientHandler extends Thread
 
 
                             this.s.setKeepAlive(true);
-	
 
-	
-	                        find_user = false;
-	
-	                        // recupero i dati
-	                        rs = stmt.executeQuery("SELECT * from Utenti");
 
-	                        //Controllo nel database dell'esistenza dell'utente e assegnazione di quest'ultimo ad 1 dello stato di login
-	                        while(rs.next() && find_user == false)
-	                        {
-	                            if(username.equals(rs.getString("nome_utente")) && password.equals(rs.getString("password")))
-	                            {
-	                                find_user = true;
-	                                client_id = rs.getInt("id");
-	                            }
-	                        }
-	
-	                        if(find_user)
-	                        {
-	                            number_sessions = 0;
-	                            //Aggiungo caricamento sessioni
+
+                            find_user = false;
+
+                            // recupero i dati
+                            rs = stmt.executeQuery("SELECT * from Utenti");
+
+                            //Controllo nel database dell'esistenza dell'utente e assegnazione di quest'ultimo ad 1 dello stato di login
+                            while(rs.next() && find_user == false)
+                            {
+                                if(username.equals(rs.getString("nome_utente")) && password.equals(rs.getString("password")))
+                                {
+                                    find_user = true;
+                                    client_id = rs.getInt("id");
+                                }
+                            }
+
+                            if(find_user)
+                            {
+                                number_sessions = 0;
+                                //Aggiungo caricamento sessioni
                                 System.out.println("\nLoading Sessions: " + client_id);
                                 rs = stmt.executeQuery("SELECT * from R_Utente_Sessione rus where rus.id_utente = " + client_id);
                                 while (rs.next()) {
                                     number_sessions++;
                                 }
 
-	                            System.out.println("ID: " + client_id);
-	                            pstmt = conn.prepareStatement("UPDATE Utenti SET stato_login = '1' where Utenti.id = " + client_id);
-	                            pstmt.execute();
-	                            pstmt.close(); // rilascio le risorse
+                                System.out.println("ID: " + client_id);
+                                pstmt = conn.prepareStatement("UPDATE Utenti SET stato_login = '1' where Utenti.id = " + client_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
                                 is_connect = true;
                                 is_disconnect = false;
 
@@ -387,40 +392,244 @@ class ClientHandler extends Thread
 
 
                                 }
-	                        }
-	
-	                        else
-	                        {
-	                            sendMessage("-2");
+                            }
+
+                            else
+                            {
+                                sendMessage("-2");
                                 is_connect = false;
                                 is_disconnect = true;
 
-	                        }
-	
-	                        //pstmt.close(); // rilascio le risorse
+                            }
+
+                            //pstmt.close(); // rilascio le risorse
 	                        /*stmt.close(); // rilascio le risorse
 	                        conn.close(); // termino la connessione*/
-	
-	                    }
-	                    catch(ClassNotFoundException e)
-	                    {
-	                        System.out.println(e);
-	                    }
-	                    catch(SQLException e)
-	                    {
-	                        System.out.println(e);
-	                    } catch (InterruptedException e) {
+
+                        }
+                        catch(ClassNotFoundException e)
+                        {
+                            System.out.println(e);
+                        }
+                        catch(SQLException e)
+                        {
+                            System.out.println(e);
+                        } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
 
                     }
-                	else
-                	    sendMessage("-1");
-                		//dos.writeBytes("-1" + '\n');
+                    else
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
 
-                    
+
 
                 }
+
+                else if(received.equals("disconnect"))
+                {
+
+                    //UTENTE DISCONNESSO
+                    if(is_disconnect == false && is_connect == true) {
+
+                        System.out.println("STO EFFETTUANDO LA DISCONNESSIONE");
+
+                        is_connect = false;
+                        is_disconnect = true;
+                        is_session_connected = false;
+                        is_character_connected = false;
+
+
+                        pstmt = conn.prepareStatement("UPDATE Utenti SET stato_login = '0' where Utenti.id = " + client_id);
+                        pstmt.execute();
+
+                        /*pstmt = conn.prepareStatement("UPDATE Utenti SET ultimo_login = CURRENT_TIMESTAMP where Utenti.id = " + client_id);
+                        pstmt.execute();*/
+
+                        sendMessage("1");
+                        //dos.writeBytes("1" + '\n');
+                    }
+                    else
+                        sendMessage("-1");
+                    //dos.writeBytes("-1" + '\n');
+
+                }
+
+                else if(received.equals("get_user_id"))
+                {
+                    //CONTROLLO SE L'UTENTE ESISTE NEL DATABASE
+                    send_username = dis.readLine();
+
+                    if(username.equals(send_username))
+                    {
+                        variable_return = "-5";
+                    }
+                    else
+                    {
+                        try {
+
+                            find_user = false;
+
+                            // recupero i dati
+                            rs = stmt.executeQuery("SELECT * from Utenti");
+
+                            while (rs.next() && find_user == false) {
+                                if (send_username.equals(rs.getString("nome_utente"))) {
+                                    find_user = true;
+                                    send_id = rs.getInt("id");
+
+                                }
+
+                            }
+
+                            if (find_user)
+                            {
+                                variable_return = Integer.toString(send_id);
+                            }
+                            else
+                            {
+                                variable_return = "-2";
+                            }
+
+                        }
+                        catch(SQLException e)
+                        {
+                            System.out.println(e);
+                        }
+
+                    }
+                    sendMessage(variable_return);
+                    //dos.writeBytes(variable_return + '\n');
+
+                }
+
+                else if(received.equals("create_user"))
+                {
+                    //INVIO MESSAGGIO ALL'UTENTE DESIDERATO
+
+
+                    new_username = dis.readLine();
+                    new_password = dis.readLine();
+                    //new_name = dis.readLine();
+                    //new_surname = dis.readLine();
+                    new_email = dis.readLine();
+
+
+
+                    try {
+
+                        find_user = false;
+                        my_bool = false;
+
+                        if(is_connect == false && is_disconnect) {
+                            Class.forName("com.mysql.jdbc.Driver");
+                            conn = DriverManager.getConnection("jdbc:mysql://216.158.239.6/game?" + "user=inventorymaster&password=Rootinventory1!");
+                            stmt = conn.createStatement();
+                            my_bool = true;
+                        }
+                        // creo la tabella
+                        // recupero i dati
+                        rs = stmt.executeQuery("SELECT * from Utenti");
+
+                        while(rs.next() && find_user == false)
+                        {
+                            if(new_username.equals(rs.getString("nome_utente")))
+                            {
+                                find_user = true;
+
+                            }
+                        }
+
+                        if(find_user)
+                        {
+                            variable_return = "-2";
+                        }
+
+                        else
+                        {
+
+                            pstmt = conn.prepareStatement("INSERT INTO Utenti " + "(nome_utente, password, email) values (?,?,?)");
+
+                            //pstmt.setString(1, new_name);
+                            //pstmt.setString(2, new_surname);
+                            pstmt.setString(1, new_username);
+                            pstmt.setString(2, new_password);
+                            pstmt.setString(3, new_email);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+                            variable_return = "1";
+                        }
+
+                        System.out.println("Restituisco variabile inserimento utente " + variable_return);
+                        sendMessage(variable_return);
+                        //dos.writeBytes(variable_return + '\n');
+
+                        if(my_bool)
+                        {
+                            my_bool = false;
+                            stmt.close(); // rilascio le risorse
+                            conn.close(); // termino la connessione
+                        }
+                    }
+                    catch(SQLException e)
+                    {
+                        System.out.println(e);
+                        variable_return = "-1";
+                        sendMessage(variable_return);
+                        //dos.writeBytes(variable_return + '\n');
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+
+                else if(received.equals("update_user"))
+                {
+                    ob_type = dis.readLine();
+                    ob_data = dis.readLine();
+
+
+                    if(is_disconnect == false && is_connect == true) {
+                        sendMessage("1");
+
+                        if(ob_type.equals("nome_utente"))
+                        {
+                            pstmt = conn.prepareStatement("UPDATE Utenti SET nome_utente = '" + ob_data + "' where Utenti.id = " + client_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+                            sendMessage("1");
+                        }
+
+                        else if(ob_type.equals("password"))
+                        {
+                            pstmt = conn.prepareStatement("UPDATE Utenti SET password = '" + ob_data + "' where Utenti.id = " + client_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+                            sendMessage("1");
+                        }
+
+                        else if(ob_type.equals("email"))
+                        {
+                            pstmt = conn.prepareStatement("UPDATE Utenti SET email = '" + ob_data + "' where Utenti.id = " + client_id);
+                            pstmt.execute();
+                            pstmt.close(); // rilascio le risorse
+                            sendMessage("1");
+                        }
+
+                        //Update immagine di profilo
+
+                        else
+                        {
+                            sendMessage("-2");
+                        }
+
+                    }
+                    else
+                        sendMessage("-1");
+
+                }
+
 
 
 
@@ -2880,6 +3089,8 @@ class ClientHandler extends Thread
                     //dos.writeBytes("-1" + '\n');
                 }
 
+
+
                 //EQUIPMENT
 
                 else if (received.equals("get_equipment"))
@@ -3228,12 +3439,6 @@ class ClientHandler extends Thread
                         sendMessage("-1");
                     //dos.writeBytes("-1" + '\n');
                 }
-
-
-
-
-
-
 
 
 
@@ -3917,8 +4122,6 @@ class ClientHandler extends Thread
 
 
 
-
-
                 //Update punti skill // DA non fare adesso
 
                 //Show all monsters
@@ -3933,7 +4136,6 @@ class ClientHandler extends Thread
 
                 //Category
 
-                //DA CAMBIARE
                 else if (received.equals("get_category_data"))
                 {
                     o_nome = dis.readLine();
@@ -5459,213 +5661,9 @@ class ClientHandler extends Thread
 
 
 
-                //USER
-
-                else if(received.equals("get_user_id"))
-                {
-                	//CONTROLLO SE L'UTENTE ESISTE NEL DATABASE
-                	send_username = dis.readLine();
-
-                	if(username.equals(send_username))
-                    {
-                        variable_return = "-5";
-                    }
-                    else
-                    {
-                        try {
-
-                            find_user = false;
-
-                            // recupero i dati
-                            rs = stmt.executeQuery("SELECT * from Utenti");
-
-                            while (rs.next() && find_user == false) {
-                                if (send_username.equals(rs.getString("nome_utente"))) {
-                                    find_user = true;
-                                    send_id = rs.getInt("id");
-
-                                }
-
-                            }
-
-                            if (find_user) 
-                            {
-                            	variable_return = Integer.toString(send_id);
-                            }
-                            else
-                            {
-                            	variable_return = "-2";
-                            }
-                            
-                        }
-                        catch(SQLException e)
-                        {
-                            System.out.println(e);
-                        }
-
-                    }
-                    sendMessage(variable_return);
-                    //dos.writeBytes(variable_return + '\n');
-                    
-                }
 
 
-                else if(received.equals("create_user"))
-                {
-                    //INVIO MESSAGGIO ALL'UTENTE DESIDERATO
-
-
-                    new_username = dis.readLine();
-                    new_password = dis.readLine();
-                    //new_name = dis.readLine();
-                    //new_surname = dis.readLine();
-                    new_email = dis.readLine();
-
-
-
-                    try {
-
-                        find_user = false;
-                        my_bool = false;
-
-                        if(is_connect == false && is_disconnect) {
-                            Class.forName("com.mysql.jdbc.Driver");
-                            conn = DriverManager.getConnection("jdbc:mysql://216.158.239.6/game?" + "user=inventorymaster&password=Rootinventory1!");
-                            stmt = conn.createStatement();
-                            my_bool = true;
-                        }
-                        // creo la tabella
-                        // recupero i dati
-                        rs = stmt.executeQuery("SELECT * from Utenti");
-
-                        while(rs.next() && find_user == false)
-                        {
-                            if(new_username.equals(rs.getString("nome_utente")))
-                            {
-                                find_user = true;
-
-                            }
-                        }
-
-                        if(find_user)
-                        {
-                            variable_return = "-2";
-                        }
-
-                        else
-                        {
-
-                            pstmt = conn.prepareStatement("INSERT INTO Utenti " + "(nome_utente, password, email) values (?,?,?)");
-
-                            //pstmt.setString(1, new_name);
-                            //pstmt.setString(2, new_surname);
-                            pstmt.setString(1, new_username);
-                            pstmt.setString(2, new_password);
-                            pstmt.setString(3, new_email);
-                            pstmt.execute();
-                            pstmt.close(); // rilascio le risorse
-                            variable_return = "1";
-                        }
-
-                        System.out.println("Restituisco variabile inserimento utente " + variable_return);
-                        sendMessage(variable_return);
-                        //dos.writeBytes(variable_return + '\n');
-
-                        if(my_bool)
-                        {
-                            my_bool = false;
-                            stmt.close(); // rilascio le risorse
-                            conn.close(); // termino la connessione
-                        }
-                    }
-                    catch(SQLException e)
-                    {
-                        System.out.println(e);
-                        variable_return = "-1";
-                        sendMessage(variable_return);
-                        //dos.writeBytes(variable_return + '\n');
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-
-                else if(received.equals("update_user"))
-                {
-                    ob_type = dis.readLine();
-                    ob_data = dis.readLine();
-
-
-                    if(is_disconnect == false && is_connect == true) {
-                        sendMessage("1");
-
-                        if(ob_type.equals("nome_utente"))
-                        {
-                            pstmt = conn.prepareStatement("UPDATE Utenti SET nome_utente = '" + ob_data + "' where Utenti.id = " + client_id);
-                            pstmt.execute();
-                            pstmt.close(); // rilascio le risorse
-                            sendMessage("1");
-                        }
-
-                        else if(ob_type.equals("password"))
-                        {
-                            pstmt = conn.prepareStatement("UPDATE Utenti SET password = '" + ob_data + "' where Utenti.id = " + client_id);
-                            pstmt.execute();
-                            pstmt.close(); // rilascio le risorse
-                            sendMessage("1");
-                        }
-
-                        else if(ob_type.equals("email"))
-                        {
-                            pstmt = conn.prepareStatement("UPDATE Utenti SET email = '" + ob_data + "' where Utenti.id = " + client_id);
-                            pstmt.execute();
-                            pstmt.close(); // rilascio le risorse
-                            sendMessage("1");
-                        }
-
-                        //Update immagine di profilo
-
-                        else
-                        {
-                            sendMessage("-2");
-                        }
-
-                    }
-                    else
-                        sendMessage("-1");
-
-                }
-
-                else if(received.equals("disconnect")) 
-                { 
-                	
-                	//UTENTE DISCONNESSO
-                	if(is_disconnect == false && is_connect == true) {
-
-                	    System.out.println("STO EFFETTUANDO LA DISCONNESSIONE");
-
-                        is_connect = false;
-                        is_disconnect = true;
-                        is_session_connected = false;
-                        is_character_connected = false;
-
-
-                        pstmt = conn.prepareStatement("UPDATE Utenti SET stato_login = '0' where Utenti.id = " + client_id);
-                        pstmt.execute();
-
-                        /*pstmt = conn.prepareStatement("UPDATE Utenti SET ultimo_login = CURRENT_TIMESTAMP where Utenti.id = " + client_id);
-                        pstmt.execute();*/
-
-                        sendMessage("1");
-                        //dos.writeBytes("1" + '\n');
-                    }
-                	else
-                        sendMessage("-1");
-                    //dos.writeBytes("-1" + '\n');
-
-                }
-
-
+                //SERVER
                 else if(received.equals("close_connection")) 
                 {  
                 	//CHIUSURA DELLA CONNESSIONE
