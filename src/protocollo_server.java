@@ -3500,6 +3500,7 @@ class ClientHandler extends Thread
 
                                 if(rs.getInt("id_host") != client_id) //Se l'utente non è host allora mi fai vedere la vista dei characters
                                 {
+                                    sendMessage("1");
                                     is_host = false;
                                     rs_temp = stmt.executeQuery("SELECT * FROM Personaggi p WHERE p.id_sessione = " + session_id + " AND p.id_utente = " + client_id + " AND p.is_character = 1");
                                     while (rs_temp.next()) {
@@ -3527,6 +3528,7 @@ class ClientHandler extends Thread
 
                                 else
                                 {
+                                    sendMessage("2");
                                     //FUNZIONI PER IL GAME MASTER
                                     is_host = true;
 
