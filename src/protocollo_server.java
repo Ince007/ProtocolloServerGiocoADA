@@ -224,7 +224,7 @@ class ClientHandler extends Thread
         String what_character = "";
 
         String character_capelli = "", character_occhi = "", character_mark = "", character_cicatrici = "", character_tatuaggi = "", character_luogo_nascita = "", character_sesso = "", character_colore_pelle = "", character_classe = "";
-        int character_anno_nascita = 0;
+        int character_anno_nascita = 0, character_giorno_nascita = 0, character_mese_nascita = 0;
 
 
         String new_username = "", new_password = "", new_name = "", new_surname = "", new_email = "";
@@ -1682,6 +1682,8 @@ class ClientHandler extends Thread
                     character_sesso = dis.readLine();
                     character_colore_pelle = dis.readLine();
                     character_anno_nascita = Integer.parseInt(dis.readLine());
+                    character_mese_nascita = Integer.parseInt(dis.readLine());
+                    character_giorno_nascita = Integer.parseInt(dis.readLine());
                     character_classe = dis.readLine();
 
 
@@ -1712,7 +1714,7 @@ class ClientHandler extends Thread
 
                         else
                         {
-                            pstmt = conn.prepareStatement("INSERT INTO Personaggi " + "(nome, hp, biografia, razza, eta, peso, altezza, hp_max, id_sessione, id_utente, is_character, colore_capelli, colore_occhi, distinguersi_mark, cicatrici, tatuaggi, anno_nascita, luogo_nascita, sesso, colore_pelle, classe /*Immagine*/ ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                            pstmt = conn.prepareStatement("INSERT INTO Personaggi " + "(nome, hp, biografia, razza, eta, peso, altezza, hp_max, id_sessione, id_utente, is_character, colore_capelli, colore_occhi, distinguersi_mark, cicatrici, tatuaggi, anno_nascita, luogo_nascita, sesso, colore_pelle, classe, mese_nascita, giorno_nascita /*Immagine*/ ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
 
                             pstmt.setString(1, c_name);
@@ -1738,6 +1740,9 @@ class ClientHandler extends Thread
                             pstmt.setString(20, character_colore_pelle);
 
                             pstmt.setString(21, character_classe);
+
+                            pstmt.setInt(22, character_mese_nascita);
+                            pstmt.setInt(23, character_giorno_nascita);
 
                             //Inserimento foto
 
@@ -1779,6 +1784,8 @@ class ClientHandler extends Thread
                     character_sesso = dis.readLine();
                     character_colore_pelle = dis.readLine();
                     character_anno_nascita = Integer.parseInt(dis.readLine());
+                    character_mese_nascita = Integer.parseInt(dis.readLine());
+                    character_giorno_nascita = Integer.parseInt(dis.readLine());
                     character_classe = dis.readLine();
 
                     if(is_disconnect == false && is_connect == true && is_session_connected == true && is_host == true) {
@@ -1807,7 +1814,7 @@ class ClientHandler extends Thread
 
                         else
                         {
-                            pstmt = conn.prepareStatement("INSERT INTO Personaggi " + "(nome, hp, biografia, razza, eta, peso, altezza, hp_max, id_sessione, id_utente, is_character, is_npc, is_riding_animal, is_enemy,  colore_capelli, colore_occhi, distinguersi_mark, cicatrici, tatuaggi, anno_nascita, luogo_nascita, sesso, colore_pelle, classe /*Immagine*/ ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                            pstmt = conn.prepareStatement("INSERT INTO Personaggi " + "(nome, hp, biografia, razza, eta, peso, altezza, hp_max, id_sessione, id_utente, is_character, is_npc, is_riding_animal, is_enemy,  colore_capelli, colore_occhi, distinguersi_mark, cicatrici, tatuaggi, anno_nascita, luogo_nascita, sesso, colore_pelle, classe, mese_nascita, giorno_nascita /*Immagine*/ ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
 
                             variable_return = "1";
@@ -1876,6 +1883,9 @@ class ClientHandler extends Thread
                             pstmt.setString(22, character_sesso);
                             pstmt.setString(23, character_colore_pelle);
                             pstmt.setString(24, character_classe);
+
+                            pstmt.setInt(25, character_mese_nascita);
+                            pstmt.setInt(26, character_giorno_nascita);
 
                             pstmt.execute();
                             pstmt.close(); // rilascio le risorse
@@ -2075,6 +2085,22 @@ class ClientHandler extends Thread
                                     sendMessage("1");
                                     //dos.writeBytes("1" + '\n');
                                     sendMessage(Integer.toString(rs.getInt("anno_nascita")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("anno_nascita")) + '\n');
+                                }
+
+                                else if(ob_type.equals("mese_nascita"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("mese_nascita")));
+                                    //dos.writeBytes( Integer.toString(rs.getInt("anno_nascita")) + '\n');
+                                }
+
+                                else if(ob_type.equals("giorno_nascita"))
+                                {
+                                    sendMessage("1");
+                                    //dos.writeBytes("1" + '\n');
+                                    sendMessage(Integer.toString(rs.getInt("giorno_nascita")));
                                     //dos.writeBytes( Integer.toString(rs.getInt("anno_nascita")) + '\n');
                                 }
 
@@ -2444,6 +2470,24 @@ class ClientHandler extends Thread
                             else if(ob_type.equals("anno_nascita"))
                             {
                                 pstmt = conn.prepareStatement("UPDATE Personaggi SET anno_nascita = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("mese_nascita"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET mese_nascita = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
+                                pstmt.execute();
+                                pstmt.close(); // rilascio le risorse
+                                sendMessage("1");
+                                //dos.writeBytes("1" + '\n');
+                            }
+
+                            else if(ob_type.equals("giorno_nascita"))
+                            {
+                                pstmt = conn.prepareStatement("UPDATE Personaggi SET giorno_nascita = '" + Integer.parseInt(ob_data) + "' where Personaggi.id = " + send_id);
                                 pstmt.execute();
                                 pstmt.close(); // rilascio le risorse
                                 sendMessage("1");
