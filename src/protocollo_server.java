@@ -834,7 +834,7 @@ class ClientHandler extends Thread
 
                         }
 
-                        sendMessage("NC:" + Integer.toString(number_categories));
+                        sendMessage(Integer.toString(number_categories));
                         //dos.writeBytes(Integer.toString(number_categories) + '\n'); //Ritorno il numero di characters per quell'utente
 
 
@@ -895,7 +895,7 @@ class ClientHandler extends Thread
 
                         }
 
-                        sendMessage("NC:" + Integer.toString(number_categories));
+                        sendMessage(Integer.toString(number_categories));
                         //dos.writeBytes(Integer.toString(number_categories) + '\n'); //Ritorno il numero di characters per quell'utente
 
 
@@ -973,7 +973,7 @@ class ClientHandler extends Thread
                             }
 
 
-                            sendMessage("NOB:" + Integer.toString(number_object_categories));
+                            sendMessage(Integer.toString(number_object_categories));
                             //dos.writeBytes(Integer.toString(number_object_categories) + '\n'); // Restituisco il numero di oggetti del backpack
 
                             image = null;
@@ -1023,7 +1023,8 @@ class ClientHandler extends Thread
                             number_characters++;
                         }
 
-                        sendMessage("NC:" + Integer.toString(number_characters));
+                        //sendMessage("NC:" + Integer.toString(number_characters));
+                        sendMessage(Integer.toString(number_characters));
                         //dos.writeBytes(Integer.toString(number_characters) + '\n'); //Ritorno il numero di characters per quell'utente
 
                         image = null;
@@ -2897,7 +2898,7 @@ class ClientHandler extends Thread
 
                         }
 
-                        sendMessage("NOB:" + Integer.toString(number_items_b));
+                        sendMessage(Integer.toString(number_items_b));
                         //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
 
                         image = null;
@@ -2966,7 +2967,7 @@ class ClientHandler extends Thread
 
                         }
 
-                        sendMessage("NOB:" + Integer.toString(number_items_b));
+                        sendMessage(Integer.toString(number_items_b));
                         //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
 
                         image = null;
@@ -3042,7 +3043,7 @@ class ClientHandler extends Thread
 
                             }
 
-                            sendMessage("NOB:" + Integer.toString(number_items_b));
+                            sendMessage(Integer.toString(number_items_b));
                             //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
 
                             image = null;
@@ -3098,7 +3099,7 @@ class ClientHandler extends Thread
 
                         }
 
-                        sendMessage("NOB:" + Integer.toString(number_items_b));
+                        sendMessage(Integer.toString(number_items_b));
                         //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
 
                         image = null;
@@ -3248,7 +3249,7 @@ class ClientHandler extends Thread
 
                         }
 
-                        sendMessage("NOB:" + Integer.toString(number_items_b));
+                        sendMessage(Integer.toString(number_items_b));
                         //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
 
                         image = null;
@@ -3543,7 +3544,7 @@ class ClientHandler extends Thread
                         }
 
 
-                        sendMessage("NOB:" + Integer.toString(number_items_b));
+                        sendMessage(Integer.toString(number_items_b));
                         //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
 
                         image = null;
@@ -3763,7 +3764,7 @@ class ClientHandler extends Thread
 
                         sendMessage("1");
 
-                        sendMessage("NS:" + Integer.toString(number_sessions));
+                        sendMessage(Integer.toString(number_sessions));
                         //dos.writeBytes(Integer.toString(number_sessions) + '\n');
 
                         if (number_sessions != 0) {
@@ -3885,14 +3886,14 @@ class ClientHandler extends Thread
 
                             //Calcolo ed invio degli utenti online per quella sessione
                             number_user_online_session = 0;
-                            rs_temp = stmt.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE rus.id_sessione = " + rs.getString("id"));
+                            rs_temp = stmt.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE rus.id_sessione = " + session_id);
                             while (rs_temp.next()) {
                                 number_user_online_session++;
                             }
-                            sendMessage("NUOS:" + Integer.toString(number_user_online_session));
+                            sendMessage(Integer.toString(number_user_online_session));
                             //dos.writeBytes(Integer.toString(number_user_online_session) + '\n');
 
-                            rs_temp = stmt.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE AND rus.id_sessione = " + rs.getString("id"));
+                            rs_temp = stmt.executeQuery("SELECT * from Utenti u inner join R_Utente_Sessione rus on rus.id_utente = u.id WHERE rus.id_sessione = " + session_id);
                             while (rs_temp.next()) {
 
                                 sendMessage("NOU:" + rs_temp.getString("nome_utente"));
@@ -3926,12 +3927,24 @@ class ClientHandler extends Thread
 
                 else if (received.equals("show_user_session"))
                 {
-                    if(is_disconnect == false && is_connect == true && is_session_connected == true) {
+                    if(is_disconnect == false && is_connect == true) {
 
                         if(number_sessions != 0)
                         {
                             sendMessage("1");
                             //dos.writeBytes("1" + '\n');
+
+
+                            //Calcolo ed invio delle sessioni per quell'utente
+                            number_sessions = 0;
+                            rs_temp = stmt.executeQuery("SELECT * from Sessioni s inner join R_Utente_Sessione rus on rus.id_sessione = s.id where rus.id_utente = " + client_id);
+                            while (rs_temp.next()) {
+                                number_sessions++;
+                            }
+                            sendMessage(Integer.toString(number_sessions));  //Restituisco il numero di sessioni di quell'utente
+                            //dos.writeBytes(Integer.toString(number_user_online_session) + '\n');
+
+
 
                             rs = stmt.executeQuery("SELECT * from Sessioni s inner join R_Utente_Sessione rus on rus.id_sessione = s.id where rus.id_utente = " + client_id);
                             while (rs.next()) {
@@ -4038,6 +4051,7 @@ class ClientHandler extends Thread
                 {
                     s_codice_invito = Integer.parseInt(dis.readLine());
 
+
                     if(is_disconnect == false && is_connect == true)
                     {
                         sendMessage("1");
@@ -4126,7 +4140,7 @@ class ClientHandler extends Thread
                             number_items_b++;
                         }
 
-                        sendMessage("NOB:" + Integer.toString(number_items_b));
+                        sendMessage(Integer.toString(number_items_b));
                         //dos.writeBytes(Integer.toString(number_items_b) + '\n'); // Restituisco il numero di oggetti del backpack
 
                         image = null;
@@ -4265,11 +4279,8 @@ class ClientHandler extends Thread
 
                 else if(received.equals("show_users_online"))
                 {
-
                     //VISUALIZZO GLI UTENTI ONLINE
-
                     System.out.println("\nClient " + this.s + " want to know the users online");
-
 
                     try {
 
@@ -4283,7 +4294,6 @@ class ClientHandler extends Thread
                         }
                         // creo la tabella
 
-
                         number_users_online = 0;
 
                         rs = stmt.executeQuery("SELECT * from Utenti where Utenti.stato_login = '1'");
@@ -4292,8 +4302,6 @@ class ClientHandler extends Thread
                         {
                             number_users_online++;
                         }
-
-
                         sendMessage(Integer.toString(number_users_online));
                         //dos.writeBytes(Integer.toString(number_users_online) + '\n');
 
@@ -4308,7 +4316,7 @@ class ClientHandler extends Thread
                                 toreturn = rs.getString("nome_utente");
                                 //toreturn = " NAME: " + rs.getString("nome") + "  SURNAME: " + rs.getString("cognome") + "  USERNAME: " + rs.getString("nome_utente");
                                 System.out.println(toreturn);
-                                sendMessage(toreturn);
+                                sendMessage("NU:" + toreturn);
                                 //dos.writeBytes(toreturn + '\n');
 
                             }
@@ -5053,7 +5061,7 @@ class ClientHandler extends Thread
                                 number_object_categories++;
                             }
 
-                            sendMessage("NOC:" + Integer.toString(number_object_categories));
+                            sendMessage(Integer.toString(number_object_categories));
 
                             rs = stmt.executeQuery("SELECT * from Oggetti o INNER JOIN Categorie c on c.id = o.id_categoria INNER JOIN R_Personaggio_Oggetto rpo on rpo.id_oggetto = o.id WHERE o.id_sessione = '" + session_id + "' AND rpo.id_personaggio = '" + character_id + "' AND c." + ob_type + " = '1' AND (rpo.is_head_eq = 0 AND rpo.is_torso_eq = 0 AND rpo.is_left_arm_eq = 0 AND rpo.is_right_arm_eq = 0 AND rpo.is_left_leg_eq = 0 AND rpo.is_right_leg_eq = 0 AND rpo.is_first_weapon_eq = 0 AND rpo.is_secondary_weapon_eq = 0 AND rpo.is_gloves_eq = 0 AND rpo.is_left_gloves_eq = 0 AND rpo.is_right_gloves_eq = 0 AND rpo.is_shoes_eq = 0 AND rpo.is_greaves_eq = 0 AND rpo.is_left_greaves_eq = 0 AND rpo.is_right_greaves_eq = 0 AND rpo.is_arms_eq = 0 AND rpo.is_legs_eq = 0 AND rpo.is_ammo_eq = 0 AND rpo.is_other_eq = 0 AND rpo.is_magic_eq = 0 AND rpo.is_shield_eq = 0)");
                             while (rs.next()) {
@@ -6004,36 +6012,31 @@ class ClientHandler extends Thread
 
 
 
-
                 //SERVER
                 else if(received.equals("close_connection")) 
                 {  
                 	//CHIUSURA DELLA CONNESSIONE
-                	
+                    is_closed = true;
+                    System.out.println("Client " + this.s + " want to close the connection...");
+                    System.out.println("Closing this connection.");
+                    sendMessage("end");
 
-                		is_closed = true;
-	                    System.out.println("Client " + this.s + " want to close the connection..."); 
-	                    System.out.println("Closing this connection.");
-	                    sendMessage("end");
+                    System.out.println("Connection closed");
 
-	                    System.out.println("Connection closed");
-	
+                    sleep(1000);
 
-	                    sleep(1000);
+                    pstmt.close(); // rilascio le risorse
+                    stmt.close(); // rilascio le risorse
+                    conn.close(); // termino la connessione
+                    conn_temp.close();
+                    stmt_temp.close();
 
-	                    pstmt.close(); // rilascio le risorse
-	                    stmt.close(); // rilascio le risorse
-	                    conn.close(); // termino la connessione
-                        conn_temp.close();
-                        stmt_temp.close();
-
-                        this.dis.close();
-                        this.dos.close();
-                        this.s.close();
+                    this.dis.close();
+                    this.dos.close();
+                    this.s.close();
 
                     break; 
                 }
-
 
 
                 else
